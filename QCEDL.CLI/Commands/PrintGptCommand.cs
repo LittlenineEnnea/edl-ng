@@ -7,10 +7,9 @@ namespace QCEDL.CLI.Commands;
 
 internal sealed class PrintGptCommand
 {
-    private static readonly Option<uint> LunOption = new(
+    private static readonly Option<uint?> LunOption = new(
         aliases: ["--lun", "-u"],
-        description: "Specify the LUN number to read the GPT from.",
-        getDefaultValue: () => 0);
+        description: "Specify the LUN number to read the GPT from. If omitted, all detected LUNs are scanned.");
 
     public static Command Create(GlobalOptionsBinder globalOptionsBinder)
     {
@@ -22,37 +21,56 @@ internal sealed class PrintGptCommand
         return command;
     }
 
-    private static async Task<int> ExecuteAsync(GlobalOptionsBinder globalOptions, uint lun)
+    private static async Task<int> ExecuteAsync(GlobalOptionsBinder globalOptions, uint? lun)
     {
         Logging.Log("Executing 'printgpt' command...", LogLevel.Trace);
 
         try
         {
             using var manager = new EdlManager(globalOptions);
+            // Generate Luns based on PHYSICAL_NUM
+            var lunsToProcess = await manager.StorageBackend.DetermineLunsToScanAsync(lun);
+
+            var overallExitCode = 0;
             var isDirectMode = manager.IsHostDeviceMode || manager.IsRadxaWosMode;
-            var effectiveLun = isDirectMode ? 0u : lun;
 
-            var geometry = await manager.GetStorageGeometryAsync(effectiveLun);
-            var sectorSize = geometry.SectorSize;
-            var targetDescription = manager.IsHostDeviceMode
-                ? "host device"
-                : manager.IsRadxaWosMode
-                    ? "Radxa WoS platform"
-                    : $"LUN {effectiveLun}";
-
-            Logging.Log($"Using sector size: {sectorSize} bytes for {targetDescription}.", LogLevel.Debug);
-
-            const uint sectorsToRead = 64;
-            var gptData = await manager.ReadSectorsAsync(effectiveLun, 0, sectorsToRead);
-
-            if (gptData.Length < sectorSize * 2)
+            foreach (var currentLun in lunsToProcess)
             {
-                Logging.Log("Failed to read sufficient data for GPT.", LogLevel.Error);
-                return 1;
+                try
+                {
+                    var geometry = await manager.GetStorageGeometryAsync(currentLun);
+                    var sectorSize = geometry.SectorSize;
+
+                    var targetDescription = isDirectMode
+                        ? (manager.IsHostDeviceMode ? "host device" : "Radxa WoS platform")
+                        : $"LUN {currentLun}";
+
+                    const uint sectorsToRead = 64;
+                    var gptData = await manager.ReadSectorsAsync(currentLun, 0, sectorsToRead);
+
+                    if (gptData == null || gptData.Length < sectorSize * 2)
+                    {
+                        Logging.Log("Failed to read sufficient data for GPT.", LogLevel.Error);
+                        overallExitCode = 1;
+                        continue;
+                    }
+
+                    var result = ProcessGptData(gptData, sectorSize, targetDescription);
+
+                    if (result != 0)
+                    {
+                        overallExitCode = result;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logging.Log($"LUN {currentLun} doesn't exist.", LogLevel.Error);
+                    Logging.Log($"Debug info: {ex.Message}", LogLevel.Debug);
+                    overallExitCode = 1;
+                }
             }
 
-            var deviceDescription = targetDescription;
-            return ProcessGptData(gptData, sectorSize, deviceDescription);
+            return overallExitCode;
         }
         catch (FileNotFoundException ex)
         {
