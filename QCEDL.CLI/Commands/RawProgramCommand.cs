@@ -102,8 +102,8 @@ internal sealed class RawProgramCommand
 
         var rawProgramFilesMap = new Dictionary<int, FileInfo>();
         var patchFilesMap = new Dictionary<int, FileInfo>();
-        var rawProgramRegex = new Regex(@"rawprogram(\d+)\.xml$", RegexOptions.IgnoreCase);
-        var patchRegex = new Regex(@"patch(\d+)\.xml$", RegexOptions.IgnoreCase);
+        var rawProgramRegex = new Regex(@"^rawprogram\w*?(\d+)\.xml$", RegexOptions.IgnoreCase);
+        var patchRegex = new Regex(@"^patch\w*?(\d+)\.xml$", RegexOptions.IgnoreCase);
 
         foreach (var file in resolvedXmlFiles)
         {
@@ -135,7 +135,7 @@ internal sealed class RawProgramCommand
                 }
                 else
                 {
-                    Logging.Log($"Warning: Skipping file with unrecognized name format: {file.Name}. Expected rawprogramN.xml or patchN.xml.", LogLevel.Warning);
+                    Logging.Log($"Warning: Skipping file with unrecognized name format: {file.Name}. Expected rawprogram[_variant]N.xml or patch[_variant]N.xml.", LogLevel.Warning);
                 }
             }
         }
