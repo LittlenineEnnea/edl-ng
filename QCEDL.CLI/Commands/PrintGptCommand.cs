@@ -31,8 +31,8 @@ internal sealed class PrintGptCommand
             // Generate Luns based on PHYSICAL_NUM
             var lunsToProcess = await manager.StorageBackend.DetermineLunsToScanAsync(lun);
 
-            var overallExitCode = 0;
             var isDirectMode = manager.IsHostDeviceMode || manager.IsRadxaWosMode;
+            var anyLunSucceeded = false;
 
             foreach (var currentLun in lunsToProcess)
             {
@@ -48,29 +48,27 @@ internal sealed class PrintGptCommand
                     const uint sectorsToRead = 64;
                     var gptData = await manager.ReadSectorsAsync(currentLun, 0, sectorsToRead);
 
-                    if (gptData == null || gptData.Length < sectorSize * 2)
+                    if (gptData.Length < sectorSize * 2)
                     {
                         Logging.Log("Failed to read sufficient data for GPT.", LogLevel.Error);
-                        overallExitCode = 1;
                         continue;
                     }
 
                     var result = ProcessGptData(gptData, sectorSize, targetDescription);
 
-                    if (result != 0)
+                    if (result == 0)
                     {
-                        overallExitCode = result;
+                        anyLunSucceeded = true;
                     }
                 }
                 catch (Exception ex)
                 {
-                    Logging.Log($"LUN {currentLun} doesn't exist.", LogLevel.Error);
-                    Logging.Log($"Debug info: {ex.Message}", LogLevel.Debug);
-                    overallExitCode = 1;
+                    Logging.Log($"Failed to read or parse GPT for LUN {currentLun}.", LogLevel.Error);
+                    Logging.Log($"Exception while processing GPT for LUN {currentLun}: {ex.GetType().Name}: {ex.Message}", LogLevel.Debug);
                 }
             }
-
-            return overallExitCode;
+            // if neither LUN succeeded, return 1 to indicate an error; otherwise return 0
+            return anyLunSucceeded ? 0 : 1;
         }
         catch (FileNotFoundException ex)
         {
