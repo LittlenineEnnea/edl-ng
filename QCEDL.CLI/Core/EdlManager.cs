@@ -1080,7 +1080,7 @@ internal sealed class EdlManager(GlobalOptionsBinder globalOptions) : IDisposabl
         public Task<List<uint>> DetermineLunsToScanAsync(uint? specifiedLun)
         {
             // Direct backends only support LUN 0; default to 0 when no LUN is specified.
-            return Task.FromResult(new List<uint> { specifiedLun ?? 0u });
+            return Task.FromResult(new List<uint> { 0u });
         }
 
         private static void WarnIfUnsupportedLun(uint? lun)
