@@ -28,7 +28,7 @@ internal sealed class PrintGptCommand
         try
         {
             using var manager = new EdlManager(globalOptions);
-            // Generate Luns based on PHYSICAL_NUM
+            // Generate LUNs based on StorageInfo.NumPhysical (number of physical partitions)
             var lunsToProcess = await manager.StorageBackend.DetermineLunsToScanAsync(lun);
 
             var isDirectMode = manager.IsHostDeviceMode || manager.IsRadxaWosMode;
@@ -50,7 +50,7 @@ internal sealed class PrintGptCommand
 
                     if (gptData.Length < sectorSize * 2)
                     {
-                        Logging.Log("Failed to read sufficient data for GPT.", LogLevel.Error);
+                        Logging.Log($"Failed to read sufficient data for GPT from {targetDescription} (LUN {currentLun}).", LogLevel.Error);
                         continue;
                     }
 

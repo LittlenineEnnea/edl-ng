@@ -1079,7 +1079,7 @@ internal sealed class EdlManager(GlobalOptionsBinder globalOptions) : IDisposabl
 
         public Task<List<uint>> DetermineLunsToScanAsync(uint? specifiedLun)
         {
-            // Set default Lun 0 on woa mode
+            // Direct backends only support LUN 0; default to 0 when no LUN is specified.
             return Task.FromResult(new List<uint> { specifiedLun ?? 0u });
         }
 
