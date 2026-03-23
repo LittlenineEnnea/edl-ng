@@ -7,10 +7,9 @@ namespace QCEDL.CLI.Commands;
 
 internal sealed class PrintGptCommand
 {
-    private static readonly Option<uint> LunOption = new(
+    private static readonly Option<uint?> LunOption = new(
         aliases: ["--lun", "-u"],
-        description: "Specify the LUN number to read the GPT from.",
-        getDefaultValue: () => 0);
+        description: "Specify the LUN number to read the GPT from. If omitted, all detected LUNs are scanned.");
 
     public static Command Create(GlobalOptionsBinder globalOptionsBinder)
     {
@@ -22,31 +21,58 @@ internal sealed class PrintGptCommand
         return command;
     }
 
-    private static async Task<int> ExecuteAsync(GlobalOptionsBinder globalOptions, uint lun)
+    private static async Task<int> ExecuteAsync(GlobalOptionsBinder globalOptions, uint? lun)
     {
         Logging.Log("Executing 'printgpt' command...", LogLevel.Trace);
 
         return await CommandExecutor.RunAsync("printgpt", async () =>
         {
             using var manager = new EdlManager(globalOptions);
-            var effectiveLun = manager.IsDirectMode ? 0u : lun;
 
-            var geometry = await manager.GetStorageGeometryAsync(effectiveLun);
-            var sectorSize = geometry.SectorSize;
-            var targetDescription = manager.GetTargetDescription(effectiveLun);
+            var lunsToProcess = await manager.StorageBackend.DetermineLunsToScanAsync(lun);
+            var overallExitCode = 0;
 
-            Logging.Log($"Using sector size: {sectorSize} bytes for {targetDescription}.", LogLevel.Debug);
-
-            const uint sectorsToRead = 64;
-            var gptData = await manager.ReadSectorsAsync(effectiveLun, 0, sectorsToRead);
-
-            if (gptData.Length < sectorSize * 2)
+            foreach (var currentLun in lunsToProcess)
             {
-                Logging.Log("Failed to read sufficient data for GPT.", LogLevel.Error);
-                return 1;
+                try
+                {
+                    var effectiveLun = manager.IsDirectMode ? 0u : currentLun;
+
+                    var geometry = await manager.GetStorageGeometryAsync(effectiveLun);
+                    var sectorSize = geometry.SectorSize;
+                    var targetDescription = manager.GetTargetDescription(effectiveLun);
+
+                    Logging.Log($"Using sector size: {sectorSize} bytes for {targetDescription}.", LogLevel.Debug);
+
+                    const uint sectorsToRead = 64;
+                    var gptData = await manager.ReadSectorsAsync(effectiveLun, 0, sectorsToRead);
+
+                    if (gptData == null || gptData.Length < sectorSize * 2)
+                    {
+                        Logging.Log($"Failed to read sufficient data for GPT on {targetDescription}.", LogLevel.Error);
+                        overallExitCode = 1;
+                        continue;
+                    }
+
+                    var result = ProcessGptData(gptData, sectorSize, targetDescription);
+                    if (result != 0)
+                    {
+                        overallExitCode = result;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logging.Log($"Error accessing LUN {currentLun}: {ex.Message}", LogLevel.Error);
+                    overallExitCode = 1;
+                }
+
+                if (manager.IsDirectMode)
+                {
+                    break;
+                }
             }
 
-            return ProcessGptData(gptData, sectorSize, targetDescription);
+            return overallExitCode;
         });
     }
 

@@ -23,7 +23,7 @@ internal sealed class EdlManager(GlobalOptionsBinder globalOptions) : IDisposabl
     private QualcommSerial? _serialPort;
     private QualcommSahara? _saharaClient;
     private QualcommFirehose? _firehoseClient;
-    private IStorageBackend? _storageBackend;
+    internal IStorageBackend? XstorageBackend;
     private bool _firehoseConfigured;
     private bool _disposed;
 
@@ -99,9 +99,9 @@ internal sealed class EdlManager(GlobalOptionsBinder globalOptions) : IDisposabl
         return _radxaWoSManager;
     }
 
-    private IStorageBackend StorageBackend => _storageBackend ??= CreateStorageBackend();
+    internal IStorageBackend StorageBackend => XstorageBackend ??= CreateStorageBackend();
 
-    private IStorageBackend CreateStorageBackend()
+    internal IStorageBackend CreateStorageBackend()
     {
         EnsureValidDirectMode();
 
@@ -1015,14 +1015,14 @@ internal sealed class EdlManager(GlobalOptionsBinder globalOptions) : IDisposabl
             _hostDeviceManager = null;
             _radxaWoSManager = null;
             _devicePath = null;
-            _storageBackend = null;
+            XstorageBackend = null;
             _firehoseConfigured = false;
 
             _disposed = true;
         }
     }
 
-    private interface IStorageBackend
+    internal interface IStorageBackend
     {
         Task<GptPartition?> FindPartitionAsync(string partitionName, uint? specifiedLun);
         Task<(GptPartition partition, uint lun)?> FindPartitionWithLunAsync(string partitionName, uint? specifiedLun);
@@ -1032,9 +1032,10 @@ internal sealed class EdlManager(GlobalOptionsBinder globalOptions) : IDisposabl
         uint GetDefaultSectorSize(uint lun);
         Task EraseSectorsAsync(uint lun, ulong startSector, ulong sectorCount, Action<long, long>? progressCallback);
         Task WriteSectorsAsync(uint lun, ulong startSector, Stream source, long sourceLength, bool padToSector, string sourceName, Action<long, long>? progressCallback);
+        Task<List<uint>> DetermineLunsToScanAsync(uint? specifiedLun);
     }
 
-    private abstract class DirectStorageBackendBase(BlockDeviceManagerBase device) : IStorageBackend
+    internal abstract class DirectStorageBackendBase(BlockDeviceManagerBase device) : IStorageBackend
     {
         private readonly BlockDeviceManagerBase _device = device;
 
@@ -1087,6 +1088,12 @@ internal sealed class EdlManager(GlobalOptionsBinder globalOptions) : IDisposabl
             return Task.Run(() => _device.WriteStream(startSector, source, sourceLength, padToSector, progressCallback));
         }
 
+        public Task<List<uint>> DetermineLunsToScanAsync(uint? specifiedLun)
+        {
+            // Direct backends only support LUN 0; default to 0 when no LUN is specified.
+            return Task.FromResult(new List<uint> { 0u });
+        }
+
         private static void WarnIfUnsupportedLun(uint? lun)
         {
             if (lun.HasValue)
@@ -1108,7 +1115,7 @@ internal sealed class EdlManager(GlobalOptionsBinder globalOptions) : IDisposabl
 
     private sealed class RadxaWoSBackend(RadxaWoSDeviceManager manager) : DirectStorageBackendBase(manager);
 
-    private sealed class FirehoseStorageBackend(EdlManager owner) : IStorageBackend
+    internal sealed class FirehoseStorageBackend(EdlManager owner) : IStorageBackend
     {
         private readonly Dictionary<uint, StorageGeometry> _geometryCache = [];
 
@@ -1348,7 +1355,7 @@ internal sealed class EdlManager(GlobalOptionsBinder globalOptions) : IDisposabl
             return null;
         }
 
-        private async Task<List<uint>> DetermineLunsToScanAsync(uint? specifiedLun)
+        public async Task<List<uint>> DetermineLunsToScanAsync(uint? specifiedLun)
         {
             if (specifiedLun.HasValue)
             {
