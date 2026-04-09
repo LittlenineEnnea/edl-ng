@@ -44,7 +44,7 @@ Run `edl-ng --help` for a full list of commands and options, or refer to the spe
 
 ### Supported Commands
 
-* `upload-loader`: Connects in Sahara mode and uploads the specified Firehose loader.
+* `upload-loader`: Connects in Sahara mode and uploads the specified Firehose loader.(e.g., qsahara_device_programmer.xml, xbl_s_devprg_ns.melf or prog_firehose_*.elf)
 * `printgpt`: Reads and prints the GPT from the device.
 * `read-part <partition_name> <filename>`: Reads a partition to a file.
 * `read-sector <start_sector> <num_sectors> <filename>`: Reads sectors to a file.

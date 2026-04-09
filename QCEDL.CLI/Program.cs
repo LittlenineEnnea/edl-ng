@@ -8,7 +8,7 @@ using Qualcomm.EmergencyDownload.Layers.APSS.Firehose.Xml.Elements;
 // --- Define Global Options ---
 var loaderOption = new Option<FileInfo>(
     aliases: ["--loader", "-l"],
-    description: "Path to the Firehose programmer (e.g., prog_firehose_*.elf).")
+    description: "Path to the Firehose programmer (e.g.,qsahara_device_programmer.xml, xbl_s_devprg_ns.melf or prog_firehose_*.elf).")
 {
     IsRequired = false
 }; // Initially false, commands that need it can enforce it or EdlManager can check

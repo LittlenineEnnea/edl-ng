@@ -894,7 +894,14 @@ internal sealed class EdlManager(GlobalOptionsBinder globalOptions) : IDisposabl
             _saharaClient.SwitchMode(QualcommSaharaMode.ImageTxPending);
             await Task.Delay(100);
 
-            Logging.Log($"Uploading loader: {globalOptions.LoaderPath}");
+            if (globalOptions.LoaderPath.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
+            {
+                Logging.Log($"Parsing QSahara programmer XML: {globalOptions.LoaderPath}");
+            }
+            else
+            {
+                Logging.Log($"Uploading loader: {globalOptions.LoaderPath}");
+            }
 
             var success = await Task.Run(() => _saharaClient.LoadProgrammer(globalOptions.LoaderPath));
 
