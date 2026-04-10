@@ -17,7 +17,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
-using System.Xml.Linq;
+
 using QCEDL.NET.Logging;
 using Qualcomm.EmergencyDownload.Layers.PBL.Sahara.Command;
 using Qualcomm.EmergencyDownload.Transport;
@@ -26,31 +26,9 @@ namespace Qualcomm.EmergencyDownload.Layers.PBL.Sahara;
 
 internal delegate void ReadyHandler();
 
-public static class SaharaConfigParser
-{
-    public static Dictionary<uint, string> ParseConfig(string xmlPath)
-    {
-        var mappings = new Dictionary<uint, string>();
-        var doc = XDocument.Load(xmlPath);
-        var baseDir = Path.GetDirectoryName(xmlPath) ?? "";
-        var images = doc.Descendants("image");
-        foreach (var img in images)
-        {
-            var idStr = img.Attribute("image_id")?.Value;
-            var relPath = img.Attribute("image_path")?.Value ?? "";
-
-            if (uint.TryParse(idStr, out var id))
-            {
-                var fullPath = Path.IsPathRooted(relPath) ? relPath : Path.Combine(baseDir, relPath);
-                mappings[id] = fullPath;
-            }
-        }
-        return mappings;
-    }
-}
-
 public class QualcommSahara(QualcommSerial serial)
 {
+    private const uint FirehoseProgrammerImageId = 13;
     public uint DetectedDeviceSaharaVersion { get; private set; } = 2;
     private Dictionary<uint, string> _imageMappings = [];
 
@@ -74,7 +52,7 @@ public class QualcommSahara(QualcommSerial serial)
         return packet;
     }
 
-    private static byte[] BuildHelloResponsePacket(QualcommSaharaMode saharaMode, uint protocolVersion = 2, uint supportedVersion = 1, uint maxPacketLength = 0 /* 0: Status OK */)
+    private static byte[] BuildHelloResponsePacket(QualcommSaharaMode saharaMode, uint protocolVersion = 2, uint supportedVersion = 1, uint maxPacketLength = 0)
     {
         var hello = new byte[0x28];
 
@@ -147,6 +125,7 @@ public class QualcommSahara(QualcommSerial serial)
             }
             else
             {
+                LibraryLogger.Debug("Reading HELLO packet from device for handshake.");
                 hello = serial.GetResponse([0x01, 0x00, 0x00, 0x00]);
             }
 
@@ -180,20 +159,31 @@ public class QualcommSahara(QualcommSerial serial)
 
     public bool SendImage(string path)
     {
-        if (path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
+        try
         {
-            _imageMappings = SaharaConfigParser.ParseConfig(path);
-            LibraryLogger.Debug("Multi-image mode enabled via XML configuration.");
-            LibraryLogger.Debug($"Loaded configuration, total {_imageMappings.Count} files.");
+            if (path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
+            {
+                _imageMappings = SaharaConfigParser.ParseAndValidateConfig(path);
+                LibraryLogger.Debug("Multi-image mode validated.");
+                LibraryLogger.Debug($"Loaded configuration, total {_imageMappings.Count} files.");
+            }
+            else
+            {
+                _imageMappings.Clear();
+                _imageMappings[FirehoseProgrammerImageId] = path;
+                if (!File.Exists(path))
+                {
+                    throw new FileNotFoundException("File not found", path);
+                }
+            }
         }
-        else
-        {   // default firehose image id is 13 for sm8750 and older
-            _imageMappings.Clear();
-            _imageMappings[13] = path;
+        catch (Exception ex)
+        {
+            LibraryLogger.Error($"Pre-transfer validation failed: {ex.Message}");
+            return false;
         }
 
         var imagesTransferredCount = 0;
-
         try
         {
             var hello = serial.GetResponse([0x01, 0x00, 0x00, 0x00]);
@@ -221,14 +211,19 @@ public class QualcommSahara(QualcommSerial serial)
 
                 var commandId = (QualcommSaharaCommand)ByteOperations.ReadUInt32(request, 0);
 
+                if (commandId == QualcommSaharaCommand.Hello)
+                {
+                    LibraryLogger.Debug("Device requested re-handshake (Next stage).");
+                    serial.SendData(BuildHelloResponsePacket(QualcommSaharaMode.ImageTxPending));
+                    continue;
+                }
+
                 if (commandId is QualcommSaharaCommand.ReadData or QualcommSaharaCommand.ReadData64Bit)
                 {
-                    var requestedId = ByteOperations.ReadUInt32(request, 0x08);
-
-                    if (_imageMappings.TryGetValue(requestedId, out var filePath) && File.Exists(filePath))
+                    var lastRequestedId = ByteOperations.ReadUInt32(request, 0x08);
+                    if (_imageMappings.TryGetValue(lastRequestedId, out var filePath) && File.Exists(filePath))
                     {
-                        LibraryLogger.Debug($"Requested ID: {requestedId}, Path: {filePath}");
-                        // show the image id with matching file
+                        LibraryLogger.Debug($"Requested ID: {lastRequestedId}, Path: {filePath}");
                         using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
                         if (commandId == QualcommSaharaCommand.ReadData)
                         {
@@ -241,7 +236,7 @@ public class QualcommSahara(QualcommSerial serial)
                     }
                     else
                     {
-                        LibraryLogger.Error($"Could not find Image ID: {requestedId}");
+                        LibraryLogger.Error($"Could not find Image ID: {lastRequestedId}");
                         return false;
                     }
                 }
@@ -251,14 +246,15 @@ public class QualcommSahara(QualcommSerial serial)
                     serial.SendData(BuildCommandPacket(QualcommSaharaCommand.Done));
                     imagesTransferredCount++;
                 }
-                else if (commandId == QualcommSaharaCommand.Hello)
+                else if (commandId is QualcommSaharaCommand.Done or QualcommSaharaCommand.DoneResponse)
                 {
-                    serial.SendData(BuildHelloResponsePacket(QualcommSaharaMode.ImageTxPending));
+                    LibraryLogger.Debug($"Received {commandId} from device. Waiting for potential next stage...");
+                    continue;
                 }
-                else if (commandId == QualcommSaharaCommand.Done)
+                else
                 {
-                    LibraryLogger.Debug("Received DONE command from device.");
-                    return true;
+                    LibraryLogger.Error($"Unexpected Sahara command received: 0x{(uint)commandId:X8}");
+                    return false;
                 }
             }
         }
@@ -275,9 +271,11 @@ public class QualcommSahara(QualcommSerial serial)
         try
         {
             _ = serial.SendCommand(BuildCommandPacket(QualcommSaharaCommand.Done), [0x06, 0x00, 0x00, 0x00]);
+            LibraryLogger.Info("Programmer execution signaled.");
         }
         catch
         {
+            LibraryLogger.Debug("Device hand-off to Firehose mode.");
         }
     }
 
