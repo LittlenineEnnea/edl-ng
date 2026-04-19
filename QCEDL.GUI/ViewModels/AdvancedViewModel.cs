@@ -15,6 +15,7 @@ public sealed partial class AdvancedViewModel : ViewModelBase
 {
     private readonly EdlService _service;
     private readonly IObservable<bool> _canRun;
+    private readonly IObservable<bool> _canUploadLoader;
 
     [Reactive] private string? _provisionXmlPath;
     [Reactive] private string _provisionStatus = string.Empty;
@@ -33,6 +34,8 @@ public sealed partial class AdvancedViewModel : ViewModelBase
         ResetModes = Enum.GetValues<PowerValue>();
         _canRun = this.WhenAnyValue(x => x.CanInteract)
             .CombineLatest(_service.WhenConnectedChanged, (ok, connected) => ok && connected);
+        _canUploadLoader = this.WhenAnyValue(x => x.CanInteract)
+            .CombineLatest(_service.WhenSaharaModeChanged, (ok, sahara) => ok && sahara);
 
         LogCommandErrors();
     }
@@ -118,7 +121,7 @@ public sealed partial class AdvancedViewModel : ViewModelBase
             });
     }
 
-    [ReactiveCommand(CanExecute = nameof(_canRun))]
+    [ReactiveCommand(CanExecute = nameof(_canUploadLoader))]
     private async Task UploadLoaderAsync()
     {
         if (string.IsNullOrWhiteSpace(_service.Options.LoaderPath))

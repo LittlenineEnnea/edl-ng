@@ -20,6 +20,9 @@ public sealed class EdlService : IDisposable
 
     public DeviceMode CurrentMode => _manager?.CurrentMode ?? DeviceMode.Unknown;
 
+    /// <summary>True when an active session has detected the device in Sahara (pre-loader) mode.</summary>
+    public bool IsInSaharaMode => _manager?.CurrentMode == DeviceMode.Sahara;
+
     /// <summary>Fires whenever session state may have changed (post-op or after reset).</summary>
     public event EventHandler? StateChanged;
 
@@ -28,6 +31,13 @@ public sealed class EdlService : IDisposable
         Observable.FromEventPattern(h => StateChanged += h, h => StateChanged -= h)
             .Select(_ => IsConnected)
             .StartWith(IsConnected)
+            .DistinctUntilChanged();
+
+    /// <summary>Observable stream of <see cref="IsInSaharaMode"/>, seeded with the current value.</summary>
+    public IObservable<bool> WhenSaharaModeChanged =>
+        Observable.FromEventPattern(h => StateChanged += h, h => StateChanged -= h)
+            .Select(_ => IsInSaharaMode)
+            .StartWith(IsInSaharaMode)
             .DistinctUntilChanged();
 
     /// <summary>Prepare a manager from the current <see cref="Options"/> snapshot.</summary>
