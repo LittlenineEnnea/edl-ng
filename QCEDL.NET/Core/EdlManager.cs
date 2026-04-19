@@ -42,6 +42,12 @@ public sealed class EdlManager(EdlOptions globalOptions) : IDisposable
 
     private byte[]? _initialSaharaHelloPacket;
 
+    // USB iSerial captured on the initial pinned open. Used across Sahara-to-Firehose
+    // re-enumeration (where bus/addr typically change) so we re-latch onto the same
+    // logical device instead of silently first-matching a different EDL device.
+    private string? _pinnedUsbSerial;
+    private bool _initialPinApplied;
+
     public DeviceMode CurrentMode { get; private set; }
 
     public QualcommFirehose Firehose => _firehoseClient ?? throw new InvalidOperationException("Not connected in Firehose mode.");
@@ -702,8 +708,11 @@ public sealed class EdlManager(EdlOptions globalOptions) : IDisposable
 
         try
         {
+            var pinningInEffect = _initialPinApplied || !string.IsNullOrWhiteSpace(globalOptions.UsbDeviceId);
+
             // Honor a pinned selection first: parse bus/addr from UsbDeviceId and match that specific device.
-            if (!string.IsNullOrWhiteSpace(globalOptions.UsbDeviceId) &&
+            if (!_initialPinApplied &&
+                !string.IsNullOrWhiteSpace(globalOptions.UsbDeviceId) &&
                 TryParseUsbDeviceId(globalOptions.UsbDeviceId, out var pinnedVid, out var pinnedPid, out var pinnedBus, out var pinnedAddr))
             {
                 foreach (var candidate in QualcommSerial.LibUsbContext.List())
@@ -716,11 +725,78 @@ public sealed class EdlManager(EdlOptions globalOptions) : IDisposable
                     {
                         _devicePath = FormatUsbDevicePath(pinnedVid, pinnedPid, pinnedBus, pinnedAddr);
                         _deviceGuid = WinUsbGuid;
-                        Logging.Log($"LibUsbDotNet: using pinned device {_devicePath}", LogLevel.Debug);
+                        _pinnedUsbSerial = TryReadUsbSerial(dev);
+                        _initialPinApplied = true;
+                        Logging.Log(
+                            _pinnedUsbSerial != null
+                                ? $"LibUsbDotNet: using pinned device {_devicePath} (iSerial='{_pinnedUsbSerial}')"
+                                : $"LibUsbDotNet: using pinned device {_devicePath} (iSerial unavailable)",
+                            LogLevel.Debug);
                         return true;
                     }
                 }
-                Logging.Log($"LibUsbDotNet: pinned device '{globalOptions.UsbDeviceId}' not found; falling back to first-match.", LogLevel.Warning);
+                Logging.Log($"LibUsbDotNet: pinned device '{globalOptions.UsbDeviceId}' not found.", LogLevel.Warning);
+            }
+
+            // Re-enumeration path: prefer the previously captured iSerial since USB bus/addr
+            // typically change after the device re-enumerates (e.g. Sahara -> Firehose).
+            if (_pinnedUsbSerial != null)
+            {
+                UsbDevice? bySerialMatch = null;
+                var candidatesSeen = 0;
+                foreach (var candidate in QualcommSerial.LibUsbContext.List())
+                {
+                    if (candidate is not UsbDevice dev || dev.VendorId != vidToFind || !pidsToFind.Contains(dev.ProductId))
+                    {
+                        continue;
+                    }
+                    candidatesSeen++;
+                    var sn = TryReadUsbSerial(dev);
+                    if (sn != null && string.Equals(sn, _pinnedUsbSerial, StringComparison.Ordinal))
+                    {
+                        bySerialMatch = dev;
+                        break;
+                    }
+                }
+
+                if (bySerialMatch != null)
+                {
+                    _devicePath = FormatUsbDevicePath(vidToFind, bySerialMatch.ProductId, bySerialMatch.BusNumber, bySerialMatch.Address);
+                    _deviceGuid = WinUsbGuid;
+                    Logging.Log($"LibUsbDotNet: re-matched pinned device by iSerial '{_pinnedUsbSerial}' at {_devicePath}", LogLevel.Debug);
+                    return true;
+                }
+
+                if (candidatesSeen > 1)
+                {
+                    // Multiple EDL devices are visible and none matches our captured iSerial.
+                    // Refuse to guess — silently grabbing the wrong one can brick a neighbour device.
+                    Logging.Log(
+                        $"LibUsbDotNet: pinned device (iSerial='{_pinnedUsbSerial}') not found after re-enumeration, and {candidatesSeen} other EDL devices are present. Refusing to fall back to first-match.",
+                        LogLevel.Error);
+                    return false;
+                }
+                // candidatesSeen <= 1: fall through to first-match (safe single-device case).
+            }
+            else if (pinningInEffect)
+            {
+                // Initial pin was requested but we never captured an iSerial (read failed or descriptor missing).
+                // If >1 device is present now, refuse to guess.
+                var candidatesSeen = 0;
+                foreach (var candidate in QualcommSerial.LibUsbContext.List())
+                {
+                    if (candidate is UsbDevice dev && dev.VendorId == vidToFind && pidsToFind.Contains(dev.ProductId))
+                    {
+                        candidatesSeen++;
+                    }
+                }
+                if (candidatesSeen > 1)
+                {
+                    Logging.Log(
+                        $"LibUsbDotNet: pinning was requested ('{globalOptions.UsbDeviceId}') but iSerial is unavailable and {candidatesSeen} EDL devices are present. Refusing to fall back to first-match.",
+                        LogLevel.Error);
+                    return false;
+                }
             }
 
             foreach (var pidToFind in pidsToFind)
@@ -735,6 +811,9 @@ public sealed class EdlManager(EdlOptions globalOptions) : IDisposable
                 {
                     _devicePath = FormatUsbDevicePath(vidToFind, pidToFind, usbDevice.BusNumber, usbDevice.Address);
                     _deviceGuid = WinUsbGuid; // Use WinUSBGuid to signify LibUsbDotNet backend to QualcommSerial
+                    // Capture iSerial even without explicit pinning so subsequent re-enumerations latch back
+                    // onto this same logical device in a multi-device environment.
+                    _pinnedUsbSerial ??= TryReadUsbSerial(usbDevice);
                     Logging.Log($"LibUsbDotNet found device: VID={vidToFind:X4}, PID={pidToFind:X4} @ bus {usbDevice.BusNumber} addr {usbDevice.Address}. Path set to: {_devicePath}", LogLevel.Debug);
                     return true;
                 }
@@ -756,6 +835,37 @@ public sealed class EdlManager(EdlOptions globalOptions) : IDisposable
     private static string FormatUsbDevicePath(int vid, int pid, byte bus, byte addr)
     {
         return $"usb:vid_{vid:X4},pid_{pid:X4},bus_{bus},addr_{addr}";
+    }
+
+    /// <summary>
+    /// Best-effort read of a libusb device's iSerial string. Opens the device transiently,
+    /// reads <see cref="UsbDevice.Info"/>.<c>SerialNumber</c>, and closes it. Returns <c>null</c>
+    /// if the device cannot be opened, has no iSerial descriptor, or any exception occurs —
+    /// callers must treat iSerial as optional and degrade gracefully.
+    /// </summary>
+    private static string? TryReadUsbSerial(UsbDevice dev)
+    {
+        try
+        {
+            if (!dev.TryOpen())
+            {
+                return null;
+            }
+            try
+            {
+                var sn = dev.Info?.SerialNumber;
+                return string.IsNullOrWhiteSpace(sn) ? null : sn;
+            }
+            finally
+            {
+                try { dev.Close(); } catch (Exception ex) { Logging.Log($"LibUsbDotNet: Close after iSerial read failed: {ex.Message}", LogLevel.Trace); }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logging.Log($"LibUsbDotNet: iSerial read failed: {ex.Message}", LogLevel.Trace);
+            return null;
+        }
     }
 
     private static bool TryParseUsbDeviceId(string id, out int vid, out int pid, out byte bus, out byte addr)
@@ -1055,7 +1165,10 @@ public sealed class EdlManager(EdlOptions globalOptions) : IDisposable
                 CurrentMode = DeviceMode.Unknown;
                 if (!FindDevice()) // Find the potentially new device path
                 {
-                    throw new TodoException("Device did not re-enumerate in Firehose mode after loader upload, or could not be found.");
+                    throw new TodoException(
+                        _pinnedUsbSerial != null
+                            ? $"Device did not re-enumerate in Firehose mode, or pinned device (iSerial='{_pinnedUsbSerial}') could not be uniquely re-matched among the visible EDL devices. Refusing to pick a different device."
+                            : "Device did not re-enumerate in Firehose mode after loader upload, or could not be found.");
                 }
                 // Now establish the Firehose connection
                 Logging.Log("Connecting to re-enumerated device in Firehose mode...", LogLevel.Debug);
