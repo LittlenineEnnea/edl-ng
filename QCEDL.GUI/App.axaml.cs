@@ -25,6 +25,11 @@ public class App : Application
             Localizer.Instance.Culture = GuiSettings.ResolveStartupCulture(settings);
             Logging.CurrentLogLevel = GuiSettings.ResolveStartupLogLevel(settings);
 
+            // Apply the persisted (or default) theme before any view is constructed so
+            // first paint already matches the user's preference — avoids a light-to-dark
+            // flicker on startup.
+            ThemeService.Instance.Apply(GuiSettings.ResolveStartupTheme(settings));
+
             // Swap the FontSerif/Sans/Mono resources to match the active script, and keep
             // them in sync when the user picks a different language from Settings.
             FontTheme.Apply(Localizer.Instance.Culture);

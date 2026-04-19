@@ -9,11 +9,13 @@ public sealed class SettingsViewModel : ViewModelBase
 {
     private CultureInfo _selectedLanguage;
     private LogLevel _selectedLogLevel;
+    private AppTheme _selectedTheme;
 
     public SettingsViewModel()
     {
         _selectedLanguage = Localizer.Instance.Culture;
         _selectedLogLevel = Logging.CurrentLogLevel;
+        _selectedTheme = ThemeService.Instance.Current;
 
         // Keep selection synced if culture is changed elsewhere (e.g. from startup defaults).
         Localizer.Instance.CultureChanged += (_, _) =>
@@ -24,10 +26,20 @@ public sealed class SettingsViewModel : ViewModelBase
                 this.RaisePropertyChanged(nameof(SelectedLanguage));
             }
         };
+
+        ThemeService.Instance.ThemeChanged += (_, _) =>
+        {
+            if (_selectedTheme != ThemeService.Instance.Current)
+            {
+                _selectedTheme = ThemeService.Instance.Current;
+                this.RaisePropertyChanged(nameof(SelectedTheme));
+            }
+        };
     }
 
     public IReadOnlyList<CultureInfo> Languages { get; } = Localizer.SupportedCultures;
     public IReadOnlyList<LogLevel> LogLevels { get; } = Enum.GetValues<LogLevel>();
+    public IReadOnlyList<AppTheme> Themes { get; } = Enum.GetValues<AppTheme>();
 
     public CultureInfo SelectedLanguage
     {
@@ -62,4 +74,29 @@ public sealed class SettingsViewModel : ViewModelBase
             GuiSettings.Save();
         }
     }
+
+    public AppTheme SelectedTheme
+    {
+        get => _selectedTheme;
+        set
+        {
+            if (_selectedTheme == value)
+            {
+                return;
+            }
+
+            this.RaiseAndSetIfChanged(ref _selectedTheme, value);
+            ThemeService.Instance.Apply(value);
+            GuiSettings.Current.Theme = value.ToString();
+            GuiSettings.Save();
+        }
+    }
+
+    public string ThemeDisplayName(AppTheme theme) => theme switch
+    {
+        AppTheme.Light => Localizer.Instance["Settings_Theme_Light"],
+        AppTheme.Dark => Localizer.Instance["Settings_Theme_Dark"],
+        AppTheme.System => Localizer.Instance["Settings_Theme_System"],
+        _ => Localizer.Instance["Settings_Theme_System"],
+    };
 }

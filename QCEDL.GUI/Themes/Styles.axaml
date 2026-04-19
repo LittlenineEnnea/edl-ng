@@ -197,8 +197,8 @@
         <Setter Property="CornerRadius" Value="{DynamicResource RadiusGenerous}" />
     </Style>
     <Style Selector="Button.danger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="#CE4949" />
-        <Setter Property="BorderBrush" Value="#CE4949" />
+        <Setter Property="Background" Value="{DynamicResource BrushDangerHover}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BrushDangerHover}" />
     </Style>
 
     <Style Selector="Button.small">

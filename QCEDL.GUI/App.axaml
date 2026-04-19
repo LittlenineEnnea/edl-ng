@@ -4,7 +4,7 @@
              xmlns:svc="clr-namespace:QCEDL.GUI.Services"
              x:Class="QCEDL.GUI.App"
              Name="edl-ng"
-             RequestedThemeVariant="Light">
+             RequestedThemeVariant="Default">
     <NativeMenu.Menu>
         <NativeMenu>
             <NativeMenuItem Header="{l:Localize Menu_Help_About}"

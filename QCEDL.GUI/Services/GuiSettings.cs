@@ -105,6 +105,14 @@ public static class GuiSettings
             ? level
             : LogLevel.Info;
     }
+
+    public static AppTheme ResolveStartupTheme(GuiSettingsModel model)
+    {
+        return !string.IsNullOrWhiteSpace(model.Theme)
+            && Enum.TryParse<AppTheme>(model.Theme, ignoreCase: true, out var theme)
+            ? theme
+            : AppTheme.System;
+    }
 }
 
 public sealed class GuiSettingsModel
@@ -114,6 +122,9 @@ public sealed class GuiSettingsModel
 
     [JsonPropertyName("logLevel")]
     public string? LogLevel { get; set; }
+
+    [JsonPropertyName("theme")]
+    public string? Theme { get; set; }
 
     [JsonPropertyName("loaderPath")]
     public string? LoaderPath { get; set; }

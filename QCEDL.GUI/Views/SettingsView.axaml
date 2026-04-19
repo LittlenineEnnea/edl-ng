@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:QCEDL.GUI.ViewModels"
              xmlns:l="clr-namespace:QCEDL.GUI.Markup"
+             xmlns:svc="clr-namespace:QCEDL.GUI.Services"
              xmlns:globalization="clr-namespace:System.Globalization;assembly=System.Runtime"
              xmlns:helpers="clr-namespace:Qualcomm.EmergencyDownload.Helpers;assembly=QCEDL.NET"
              x:Class="QCEDL.GUI.Views.SettingsView"
@@ -26,6 +27,26 @@
                         <ComboBox.ItemTemplate>
                             <DataTemplate DataType="globalization:CultureInfo">
                                 <TextBlock Text="{Binding NativeName}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+            <StackPanel Spacing="14">
+                <TextBlock Classes="h3" Text="{l:Localize Settings_ThemeCardTitle}" />
+                <TextBlock Classes="caption" Text="{l:Localize Settings_ThemeCardCaption}" />
+                <Grid ColumnDefinitions="160,*" RowDefinitions="Auto" ColumnSpacing="14">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Classes="body" Text="{l:Localize Settings_ThemeLabel}" VerticalAlignment="Center" />
+                    <ComboBox Grid.Row="0" Grid.Column="1"
+                              ItemsSource="{Binding Themes}"
+                              SelectedItem="{Binding SelectedTheme}"
+                              MinWidth="240" HorizontalAlignment="Left">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate DataType="svc:AppTheme">
+                                <TextBlock Text="{Binding Converter={x:Static l:AppThemeDisplayConverter.Instance}}" />
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
