@@ -232,11 +232,6 @@ jobs:
             --configuration Release \
             --runtime "$RID" \
             --self-contained true \
-            -p:PublishAot=true \
-            -p:PublishTrimmed=true \
-            -p:PublishSingleFile=true \
-            -p:StripSymbols=true \
-            -p:TrimmerRemoveSymbols=true \
             -p:DebugType=None -p:DebugSymbols=false \
             -o helper_publish
           find helper_publish -name '*.dSYM' -type d -exec rm -rf {} + 2>/dev/null || true
@@ -275,7 +270,7 @@ jobs:
             QCEDL.GUI/macOS/Info.plist "${{ steps.version.outputs.version }}" "$ICON"
 
       - name: Import Developer ID cert
-        if: matrix.os_short == 'macos'
+        if: matrix.os_short == 'macos' && github.event_name != 'pull_request'
         env:
           APPLE_DEVELOPER_ID_CERT_P12: ${{ secrets.APPLE_DEVELOPER_ID_CERT_P12 }}
           APPLE_DEVELOPER_ID_CERT_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_CERT_PASSWORD }}
@@ -302,7 +297,7 @@ jobs:
           echo "SIGN_IDENTITY=$IDENTITY" >> "$GITHUB_ENV"
 
       - name: Codesign .app
-        if: matrix.os_short == 'macos'
+        if: matrix.os_short == 'macos' && github.event_name != 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
@@ -337,7 +332,7 @@ jobs:
           ./packaging/macos/build-dmg.sh qcedl-gui.app "$DMG" qcedl-gui 512m
 
       - name: Notarize .dmg
-        if: matrix.os_short == 'macos'
+        if: matrix.os_short == 'macos' && github.event_name != 'pull_request'
         env:
           APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}

@@ -9,6 +9,11 @@
         <Product>edl-ng-helper</Product>
         <Description>Privileged helper executed under elevated privileges by the edl-ng GUI to talk to USB/serial EDL devices on macOS.</Description>
         <InvariantGlobalization>true</InvariantGlobalization>
+        <PublishAot>true</PublishAot>
+        <PublishTrimmed>true</PublishTrimmed>
+        <PublishSingleFile>true</PublishSingleFile>
+        <StripSymbols>true</StripSymbols>
+        <TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\QCEDL.NET\QCEDL.NET.csproj" />
