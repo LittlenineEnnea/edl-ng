@@ -41,9 +41,6 @@ mkdir -p \
 
 cp -a "$PUBLISH/." "$ROOT/usr/lib/$PKG/"
 chmod 755 "$ROOT/usr/lib/$PKG/qcedl-gui"
-if [ -f "$ROOT/usr/lib/$PKG/edl-ng-helper" ]; then
-    chmod 755 "$ROOT/usr/lib/$PKG/edl-ng-helper"
-fi
 
 cat > "$ROOT/usr/bin/qcedl-gui" <<'EOF'
 #!/bin/sh

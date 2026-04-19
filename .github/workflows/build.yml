@@ -222,23 +222,6 @@ jobs:
           echo "out=$OUT"                                                  >> "$GITHUB_OUTPUT"
           echo "base=qcedl-gui-${{ matrix.os_short }}-${{ matrix.arch }}"  >> "$GITHUB_OUTPUT"
 
-      - name: Publish AOT helper (macOS)
-        if: matrix.os_short == 'macos'
-        shell: bash
-        run: |
-          set -euo pipefail
-          RID="${{ matrix.rid_prefix }}-${{ matrix.arch }}"
-          dotnet publish QCEDL.Helper/QCEDL.Helper.csproj \
-            --configuration Release \
-            --runtime "$RID" \
-            --self-contained true \
-            -p:DebugType=None -p:DebugSymbols=false \
-            -o helper_publish
-          find helper_publish -name '*.dSYM' -type d -exec rm -rf {} + 2>/dev/null || true
-          cp helper_publish/edl-ng-helper "${{ steps.publish.outputs.out }}/edl-ng-helper"
-          chmod +x "${{ steps.publish.outputs.out }}/edl-ng-helper"
-          file "${{ steps.publish.outputs.out }}/edl-ng-helper"
-
       # -------- Windows: zip --------
       - name: Zip GUI (Windows)
         if: matrix.os_short == 'windows'
@@ -307,14 +290,9 @@ jobs:
           else
             echo "Using signing identity: $IDENTITY"
           fi
-          # Sign inner Mach-O binaries (dylibs + helper exe) without entitlements, inside-out.
+          # Sign inner Mach-O binaries (dylibs) without entitlements, inside-out.
           find qcedl-gui.app/Contents/MacOS -type f -name '*.dylib' -print0 | \
             xargs -0 -I{} codesign --force --options runtime --timestamp --sign "$IDENTITY" "{}"
-          if [ -f qcedl-gui.app/Contents/MacOS/edl-ng-helper ]; then
-            codesign --force --options runtime --timestamp \
-              --entitlements QCEDL.GUI/macOS/entitlements.plist \
-              --sign "$IDENTITY" qcedl-gui.app/Contents/MacOS/edl-ng-helper
-          fi
           # Sign main executable + outer bundle with entitlements.
           codesign --force --options runtime --timestamp \
             --entitlements QCEDL.GUI/macOS/entitlements.plist \

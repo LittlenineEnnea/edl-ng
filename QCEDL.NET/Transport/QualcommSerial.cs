@@ -29,7 +29,6 @@ using Microsoft.Win32;
 using QCEDL.NET.Extensions;
 using QCEDL.NET.Logging;
 using QCEDL.NET.Todo;
-using Qualcomm.EmergencyDownload.Transport.Elevation;
 using LogLevel = LibUsbDotNet.LogLevel;
 
 namespace Qualcomm.EmergencyDownload.Transport;
@@ -38,29 +37,7 @@ public enum CommunicationMode
 {
     None,
     SerialPort,
-    LibUsbDotNet,
-    PrivilegedHelper
-}
-
-/// <summary>Device-path prefix that routes the session through a privileged helper process.</summary>
-internal static class HelperDeviceScheme
-{
-    public const string Prefix = "helper:";
-
-    public static bool IsHelperPath(string deviceIdOrPath)
-    {
-        return deviceIdOrPath.StartsWith(Prefix, StringComparison.Ordinal);
-    }
-
-    public static string Strip(string deviceIdOrPath)
-    {
-        return IsHelperPath(deviceIdOrPath) ? deviceIdOrPath[Prefix.Length..] : deviceIdOrPath;
-    }
-
-    public static string Wrap(string deviceIdOrPath)
-    {
-        return IsHelperPath(deviceIdOrPath) ? deviceIdOrPath : Prefix + deviceIdOrPath;
-    }
+    LibUsbDotNet
 }
 
 public class QualcommSerial : IDisposable
@@ -72,7 +49,6 @@ public class QualcommSerial : IDisposable
     private UsbDevice? _libUsbDevice;
     private UsbEndpointReader? _libUsbReader;
     private UsbEndpointWriter? _libUsbWriter;
-    private HelperClient? _helperClient;
     private readonly CommunicationMode _mode = CommunicationMode.None;
 
     private int _libUsbTimeoutMs = 1000;
@@ -104,31 +80,6 @@ public class QualcommSerial : IDisposable
 
     public QualcommSerial(string deviceIdOrPath)
     {
-        if (HelperDeviceScheme.IsHelperPath(deviceIdOrPath))
-        {
-            var innerPath = HelperDeviceScheme.Strip(deviceIdOrPath);
-            LibraryLogger.Debug($"Routing {innerPath} through privileged helper...");
-            var launcher = HelperLauncher.Create();
-            var session = launcher.Launch();
-            try
-            {
-                _helperClient = new HelperClient(session.Input, session.Output, session.Dispose);
-                _helperClient.Open(innerPath);
-                _mode = CommunicationMode.PrivilegedHelper;
-                ActiveCommunicationMode = _helperClient.ActiveMode != CommunicationMode.None
-                    ? _helperClient.ActiveMode
-                    : CommunicationMode.PrivilegedHelper;
-                LibraryLogger.Debug($"Privileged helper backend active (mode={_helperClient.ActiveMode}).");
-                return;
-            }
-            catch
-            {
-                _helperClient?.Dispose();
-                _helperClient = null;
-                throw;
-            }
-        }
-
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
             if (deviceIdOrPath.StartsWithOrdinal("/dev/tty"))
@@ -449,12 +400,6 @@ public class QualcommSerial : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, typeof(QualcommSerial));
 
-        if (_helperClient != null)
-        {
-            _helperClient.SendLargeData(largeData);
-            return;
-        }
-
         if (_port != null)
         {
             var bytesWritten = 0;
@@ -520,12 +465,6 @@ public class QualcommSerial : IDisposable
     {
         ObjectDisposedException.ThrowIf(_disposed, typeof(QualcommSerial));
 
-        if (_helperClient != null)
-        {
-            _helperClient.SendData(data);
-            return;
-        }
-
         if (_port != null)
         {
             LibraryLogger.Trace($"Sending {data.Length} bytes via SerialPort.");
@@ -556,11 +495,6 @@ public class QualcommSerial : IDisposable
     public void SendZeroLengthPacket()
     {
         ObjectDisposedException.ThrowIf(_disposed, typeof(QualcommSerial));
-        if (_helperClient != null)
-        {
-            _helperClient.SendZeroLengthPacket();
-            return;
-        }
         if (_mode == CommunicationMode.LibUsbDotNet && _libUsbWriter != null)
         {
             LibraryLogger.Debug("Sending Zero-Length Packet (ZLP) via LibUsbDotNet.");
@@ -592,31 +526,6 @@ public class QualcommSerial : IDisposable
     public byte[] GetResponse(byte[]? responsePattern, int length = 0x2000)
     {
         ObjectDisposedException.ThrowIf(_disposed, typeof(QualcommSerial));
-
-        if (_helperClient != null)
-        {
-            var response = _helperClient.Read(length > 0 ? length : 0x2000, _libUsbTimeoutMs > 0 ? _libUsbTimeoutMs : 1000);
-            if (response.Length == 0)
-            {
-                LibraryLogger.Warning("Emergency mode of phone is ignoring us");
-                throw new BadMessageException();
-            }
-            if (responsePattern != null)
-            {
-                for (var i = 0; i < responsePattern.Length; i++)
-                {
-                    if (response[i] != responsePattern[i])
-                    {
-                        var logResponse = new byte[response.Length < 0x10 ? response.Length : 0x10];
-                        LibraryLogger.Error("Qualcomm serial response: " +
-                                            Converter.ConvertHexToString(logResponse, ""));
-                        LibraryLogger.Error("Expected: " + Converter.ConvertHexToString(responsePattern, ""));
-                        throw new BadMessageException();
-                    }
-                }
-            }
-            return response;
-        }
 
         var responseBuffer = new byte[length > 0 ? length : 0x2000];
         length = 0;
@@ -719,11 +628,6 @@ public class QualcommSerial : IDisposable
 
         if (disposing)
         {
-            if (_helperClient != null)
-            {
-                try { _helperClient.Dispose(); } catch (Exception ex) { LibraryLogger.Error($"Error disposing HelperClient: {ex.Message}"); }
-                _helperClient = null;
-            }
             _port?.Dispose();
             if (_libUsbDevice != null)
             {
@@ -745,12 +649,6 @@ public class QualcommSerial : IDisposable
 
     public void SetTimeOut(int v)
     {
-        if (_helperClient != null)
-        {
-            _libUsbTimeoutMs = v;
-            _helperClient.SetTimeout(v);
-            return;
-        }
         if (_libUsbDevice != null)
         {
             _libUsbTimeoutMs = v;

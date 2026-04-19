@@ -127,7 +127,6 @@
   <data name="Conn_StatusDetectedFormat" xml:space="preserve"><value>已偵測到:{0}</value></data>
   <data name="Conn_LogDirectSession" xml:space="preserve"><value>直接模式工作階段(主機裝置 / Radxa WoS)。無需 USB 交握。</value></data>
   <data name="Conn_StatusDirectReady" xml:space="preserve"><value>直接模式就緒。</value></data>
-  <data name="Conn_LogElevationMacOs" xml:space="preserve"><value>macOS 存取 EDL 裝置需要管理員權限，本工作階段僅會提示一次密碼。</value></data>
   <data name="Conn_LogElevationLinuxHint" xml:space="preserve"><value>開啟 EDL 裝置被拒絕。請安裝隨 edl-ng 附帶的 udev 規則(參見 docs/linux-udev.md)，之後無需 sudo 即可存取。</value></data>
   <data name="Conn_LogConnecting" xml:space="preserve"><value>正在連接裝置(Sahara → Firehose)……</value></data>
   <data name="Conn_StatusFirehoseConnected" xml:space="preserve"><value>已於 Firehose 模式連線。</value></data>

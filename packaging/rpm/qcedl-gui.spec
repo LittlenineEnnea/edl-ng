@@ -33,7 +33,6 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/lib/qcedl-gui
 cp -a %{_sourcedir}/publish/. %{buildroot}/usr/lib/qcedl-gui/
 chmod 755 %{buildroot}/usr/lib/qcedl-gui/qcedl-gui
-[ -f %{buildroot}/usr/lib/qcedl-gui/edl-ng-helper ] && chmod 755 %{buildroot}/usr/lib/qcedl-gui/edl-ng-helper || true
 
 mkdir -p %{buildroot}/usr/bin
 cat > %{buildroot}/usr/bin/qcedl-gui <<'EOF'

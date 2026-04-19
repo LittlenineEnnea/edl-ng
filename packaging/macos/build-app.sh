@@ -53,9 +53,6 @@ if [ ! -f "$APP/Contents/MacOS/qcedl-gui" ]; then
     exit 1
 fi
 chmod +x "$APP/Contents/MacOS/qcedl-gui"
-if [ -f "$APP/Contents/MacOS/edl-ng-helper" ]; then
-    chmod +x "$APP/Contents/MacOS/edl-ng-helper"
-fi
 
 cp "$PLIST" "$APP/Contents/Info.plist"
 

@@ -14,7 +14,6 @@ using Qualcomm.EmergencyDownload.Layers.APSS.Firehose.Xml;
 using Qualcomm.EmergencyDownload.Layers.APSS.Firehose.Xml.Elements;
 using Qualcomm.EmergencyDownload.Layers.PBL.Sahara;
 using Qualcomm.EmergencyDownload.Transport;
-using Qualcomm.EmergencyDownload.Transport.Elevation;
 
 namespace Qualcomm.EmergencyDownload.Core;
 
@@ -48,10 +47,6 @@ public sealed class EdlManager(EdlOptions globalOptions) : IDisposable
     private string? _pinnedUsbSerial;
     private bool _initialPinApplied;
 
-    // Resolved transport backend from the last successful FindDevice(). Drives
-    // ResolveTransportPath's helper-wrapping decision; set by each Find* path.
-    private TransportBackend _resolvedBackend = TransportBackend.Auto;
-
     public DeviceMode CurrentMode { get; private set; }
 
     public QualcommFirehose Firehose => _firehoseClient ?? throw new InvalidOperationException("Not connected in Firehose mode.");
@@ -75,15 +70,9 @@ public sealed class EdlManager(EdlOptions globalOptions) : IDisposable
 
     private EdlOptions GlobalOptions => globalOptions;
 
-    /// <summary>
-    /// Returns the device path we should pass to <see cref="QualcommSerial"/>, transparently
-    /// routing through the privileged helper on platforms where <see cref="ElevationPolicy"/>
-    /// requires it (macOS). Direct-mode callers never get here.
-    /// </summary>
     private string ResolveTransportPath()
     {
-        var raw = _devicePath ?? throw new InvalidOperationException("Device path not resolved yet.");
-        return ElevationPolicy.RequiresHelper(_resolvedBackend) ? HelperDeviceScheme.Wrap(raw) : raw;
+        return _devicePath ?? throw new InvalidOperationException("Device path not resolved yet.");
     }
 
     private void CapturePinnedUsbSerial()
@@ -668,7 +657,6 @@ public sealed class EdlManager(EdlOptions globalOptions) : IDisposable
         }
 
         var backend = ResolveBackend(globalOptions.Backend, isWindows, isMac);
-        _resolvedBackend = backend;
         Logging.Log($"Transport backend: {backend} (requested: {globalOptions.Backend})", LogLevel.Debug);
 
         if (backend == TransportBackend.Serial)

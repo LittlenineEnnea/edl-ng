@@ -53,7 +53,7 @@ Launch the GUI and use the left-side nav to step through Connection → Partitio
 #### Platform notes
 
 - **Linux** — the GUI opens the device without `sudo` once the shipped udev rule is active. Nix consumers get it via `services.udev.packages`; manual installs: see [docs/linux-udev.md](docs/linux-udev.md).
-- **macOS** — IOKit and `/dev/cu.*` refuse unprivileged access, so the GUI spawns a small `edl-ng-helper` process under `osascript`'s "administrator privileges" prompt. Expect one Touch ID / admin-password prompt per session; the helper binary ships alongside the GUI.
+- **macOS** — defaults to the LibUsb backend, which opens the EDL interface through IOKit without elevation. If you override to the serial backend (`/dev/tty.usbserial-*`), you'll need to run the app as root.
 - **Windows** — no elevation required; devices are opened through the regular COM / WinUSB APIs.
 
 ### CLI (`edl-ng`)

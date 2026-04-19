@@ -127,7 +127,6 @@
   <data name="Conn_StatusDetectedFormat" xml:space="preserve"><value>検出: {0}</value></data>
   <data name="Conn_LogDirectSession" xml:space="preserve"><value>ダイレクトモードセッション(ホストデバイス / Radxa WoS)。USB ハンドシェイクは不要です。</value></data>
   <data name="Conn_StatusDirectReady" xml:space="preserve"><value>ダイレクトモードの準備ができました。</value></data>
-  <data name="Conn_LogElevationMacOs" xml:space="preserve"><value>macOS で EDL デバイスにアクセスするには管理者権限が必要です。セッションごとに 1 回だけパスワードの入力を求められます。</value></data>
   <data name="Conn_LogElevationLinuxHint" xml:space="preserve"><value>EDL デバイスのオープンが拒否されました。edl-ng に同梱の udev ルール(docs/linux-udev.md 参照)をインストールすると、sudo なしでアクセスできます。</value></data>
   <data name="Conn_LogConnecting" xml:space="preserve"><value>デバイスに接続しています(サハラ → ファイアホース)…</value></data>
   <data name="Conn_StatusFirehoseConnected" xml:space="preserve"><value>ファイアホース モードで接続しました。</value></data>

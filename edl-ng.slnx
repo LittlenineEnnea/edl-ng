@@ -35,9 +35,4 @@
         <Platform Solution="*|ARM64" Project="AnyCPU"/>
         <Platform Solution="*|x64" Project="AnyCPU"/>
     </Project>
-    <Project Path="QCEDL.Helper\QCEDL.Helper.csproj" Type="Classic C#">
-        <Platform Solution="*|AnyCPU" Project="AnyCPU"/>
-        <Platform Solution="*|ARM64" Project="AnyCPU"/>
-        <Platform Solution="*|x64" Project="AnyCPU"/>
-    </Project>
 </Solution>

@@ -35,12 +35,5 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\QCEDL.NET\QCEDL.NET.csproj" />
-        <!-- Ship edl-ng-helper next to qcedl-gui so HelperLauncher.ResolveHelperPath finds it at runtime.
-             The GUI does not link against the helper assembly; it's invoked as a separate executable. -->
-        <ProjectReference Include="..\QCEDL.Helper\QCEDL.Helper.csproj"
-                          ReferenceOutputAssembly="false"
-                          OutputItemType="Content"
-                          CopyToOutputDirectory="PreserveNewest"
-                          Private="true" />
     </ItemGroup>
 </Project>

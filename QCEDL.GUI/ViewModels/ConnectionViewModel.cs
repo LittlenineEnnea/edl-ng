@@ -7,7 +7,6 @@ using QCEDL.GUI.Services;
 using Qualcomm.EmergencyDownload.Core;
 using Qualcomm.EmergencyDownload.Helpers;
 using Qualcomm.EmergencyDownload.Layers.APSS.Firehose.Xml.Elements;
-using Qualcomm.EmergencyDownload.Transport.Elevation;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 
@@ -279,10 +278,6 @@ public sealed partial class ConnectionViewModel : ViewModelBase
                 return;
             }
             Logging.Log(Localizer.Instance["Conn_LogProbing"], LogLevel.Info);
-            if (ElevationPolicy.RequiresHelper(Backend))
-            {
-                Logging.Log(Localizer.Instance["Conn_LogElevationMacOs"], LogLevel.Info);
-            }
             var mode = await _service.ProbeAsync();
             ModeLiteral = mode.ToString();
             StatusKey = "Conn_StatusDetectedFormat";
@@ -427,8 +422,7 @@ public sealed partial class ConnectionViewModel : ViewModelBase
 
     /// <summary>
     /// When a connect/probe failure looks like a permission problem on Linux, point the
-    /// user at the shipped udev rule. On other platforms the helper already handles macOS
-    /// and Windows needs no elevation hint.
+    /// user at the shipped udev rule. Windows needs no elevation hint.
     /// </summary>
     private static void LogElevationHintFor(Exception ex)
     {

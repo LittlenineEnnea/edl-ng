@@ -127,7 +127,6 @@
   <data name="Conn_StatusDetectedFormat" xml:space="preserve"><value>Detected: {0}</value></data>
   <data name="Conn_LogDirectSession" xml:space="preserve"><value>Direct-mode session (host device / Radxa WoS). No USB handshake required.</value></data>
   <data name="Conn_StatusDirectReady" xml:space="preserve"><value>Direct mode ready.</value></data>
-  <data name="Conn_LogElevationMacOs" xml:space="preserve"><value>macOS requires administrator privileges to access the EDL device. You will be prompted for your password once per session.</value></data>
   <data name="Conn_LogElevationLinuxHint" xml:space="preserve"><value>Permission denied opening the EDL device. Install the shipped udev rule (see docs/linux-udev.md) so the device is accessible without sudo.</value></data>
   <data name="Conn_LogConnecting" xml:space="preserve"><value>Connecting to device (Sahara → Firehose)...</value></data>
   <data name="Conn_StatusFirehoseConnected" xml:space="preserve"><value>Connected in Firehose mode.</value></data>

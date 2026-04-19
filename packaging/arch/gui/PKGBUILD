@@ -23,9 +23,6 @@ package() {
     install -dm755 "$pkgdir/usr/lib/$pkgname"
     cp -a "$startdir/publish/." "$pkgdir/usr/lib/$pkgname/"
     chmod 755 "$pkgdir/usr/lib/$pkgname/qcedl-gui"
-    if [ -f "$pkgdir/usr/lib/$pkgname/edl-ng-helper" ]; then
-        chmod 755 "$pkgdir/usr/lib/$pkgname/edl-ng-helper"
-    fi
 
     install -dm755 "$pkgdir/usr/bin"
     cat > "$pkgdir/usr/bin/$pkgname" <<'EOF'
