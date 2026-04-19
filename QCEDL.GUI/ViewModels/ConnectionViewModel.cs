@@ -279,6 +279,10 @@ public sealed partial class ConnectionViewModel : ViewModelBase
             if (IsDirectMode)
             {
                 Logging.Log(Localizer.Instance["Conn_LogDirectSession"], LogLevel.Info);
+                // Force construction of the EdlManager so EdlService.IsConnected flips true
+                // and the rest of the GUI (Partitions/Sectors/RawProgram/Advanced) unlocks.
+                // Direct-mode managers bypass USB/Sahara/Firehose entirely — no-op action is enough.
+                await _service.RunExclusiveAsync(static _ => Task.CompletedTask);
                 StatusKey = "Conn_StatusDirectReady";
                 StatusArgs = [];
                 ModeKey = "Conn_ModeDirect";
