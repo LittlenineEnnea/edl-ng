@@ -48,6 +48,10 @@ public sealed class EdlManager(EdlOptions globalOptions) : IDisposable
     private string? _pinnedUsbSerial;
     private bool _initialPinApplied;
 
+    // Resolved transport backend from the last successful FindDevice(). Drives
+    // ResolveTransportPath's helper-wrapping decision; set by each Find* path.
+    private TransportBackend _resolvedBackend = TransportBackend.Auto;
+
     public DeviceMode CurrentMode { get; private set; }
 
     public QualcommFirehose Firehose => _firehoseClient ?? throw new InvalidOperationException("Not connected in Firehose mode.");
@@ -79,7 +83,21 @@ public sealed class EdlManager(EdlOptions globalOptions) : IDisposable
     private string ResolveTransportPath()
     {
         var raw = _devicePath ?? throw new InvalidOperationException("Device path not resolved yet.");
-        return ElevationPolicy.RequiresHelper() ? HelperDeviceScheme.Wrap(raw) : raw;
+        return ElevationPolicy.RequiresHelper(_resolvedBackend) ? HelperDeviceScheme.Wrap(raw) : raw;
+    }
+
+    private void CapturePinnedUsbSerial()
+    {
+        if (_pinnedUsbSerial != null)
+        {
+            return;
+        }
+        var sn = _serialPort?.UsbSerialNumber;
+        if (!string.IsNullOrWhiteSpace(sn))
+        {
+            _pinnedUsbSerial = sn;
+            Logging.Log($"LibUsbDotNet: captured iSerial='{sn}' from open handle for cross-reenum pinning.", LogLevel.Debug);
+        }
     }
 
     private void EnsureValidDirectMode()
@@ -239,6 +257,11 @@ public sealed class EdlManager(EdlOptions globalOptions) : IDisposable
         try
         {
             probeSerial = new(ResolveTransportPath());
+            if (_pinnedUsbSerial == null && !string.IsNullOrWhiteSpace(probeSerial.UsbSerialNumber))
+            {
+                _pinnedUsbSerial = probeSerial.UsbSerialNumber;
+                Logging.Log($"LibUsbDotNet: captured iSerial='{_pinnedUsbSerial}' from probe handle.", LogLevel.Debug);
+            }
             probeSerial.SetTimeOut(500); // Short timeout for initial read attempt
             // --- Probe 1: Passive Read ---
             Logging.Log("Attempting passive read...", LogLevel.Debug);
@@ -445,7 +468,7 @@ public sealed class EdlManager(EdlOptions globalOptions) : IDisposable
             return [];
         }
 
-        var backend = ResolveBackend(options.Backend, isWindows);
+        var backend = ResolveBackend(options.Backend, isWindows, isMac);
         return backend == TransportBackend.Serial
             ? isLinux ? EnumerateLinuxSerial(options)
                 : isWindows ? EnumerateWindowsSerial(options)
@@ -644,7 +667,8 @@ public sealed class EdlManager(EdlOptions globalOptions) : IDisposable
             return false;
         }
 
-        var backend = ResolveBackend(globalOptions.Backend, isWindows);
+        var backend = ResolveBackend(globalOptions.Backend, isWindows, isMac);
+        _resolvedBackend = backend;
         Logging.Log($"Transport backend: {backend} (requested: {globalOptions.Backend})", LogLevel.Debug);
 
         if (backend == TransportBackend.Serial)
@@ -687,11 +711,11 @@ public sealed class EdlManager(EdlOptions globalOptions) : IDisposable
         return false;
     }
 
-    private static TransportBackend ResolveBackend(TransportBackend requested, bool isWindows)
+    private static TransportBackend ResolveBackend(TransportBackend requested, bool isWindows, bool isMac)
     {
         return requested != TransportBackend.Auto
             ? requested
-            : isWindows ? TransportBackend.LibUsb : TransportBackend.Serial;
+            : isWindows || isMac ? TransportBackend.LibUsb : TransportBackend.Serial;
     }
 
     private bool FindDeviceViaLibUsb()
@@ -725,12 +749,9 @@ public sealed class EdlManager(EdlOptions globalOptions) : IDisposable
                     {
                         _devicePath = FormatUsbDevicePath(pinnedVid, pinnedPid, pinnedBus, pinnedAddr);
                         _deviceGuid = WinUsbGuid;
-                        _pinnedUsbSerial = TryReadUsbSerial(dev);
                         _initialPinApplied = true;
                         Logging.Log(
-                            _pinnedUsbSerial != null
-                                ? $"LibUsbDotNet: using pinned device {_devicePath} (iSerial='{_pinnedUsbSerial}')"
-                                : $"LibUsbDotNet: using pinned device {_devicePath} (iSerial unavailable)",
+                            $"LibUsbDotNet: using pinned device {_devicePath} (iSerial will be captured after open)",
                             LogLevel.Debug);
                         return true;
                     }
@@ -809,11 +830,15 @@ public sealed class EdlManager(EdlOptions globalOptions) : IDisposable
 
                 if (QualcommSerial.LibUsbContext.Find(finder) is UsbDevice usbDevice)
                 {
-                    _devicePath = FormatUsbDevicePath(vidToFind, pidToFind, usbDevice.BusNumber, usbDevice.Address);
+                    // Match main's historical path format (no bus/addr) when the caller hasn't
+                    // explicitly pinned. `QualcommSerial.FindLibUsbDevice` takes the `Find(finder)`
+                    // fast path when bus/addr are absent from the path; the `List()`-enumeration
+                    // fallback has different endpoint/timeout behavior on macOS IOKit that causes
+                    // the post-loader Sahara read to receive the Firehose hello instead of timing out.
+                    // Bus/addr are only needed when disambiguating multiple EDL devices — logged
+                    // for diagnostics either way.
+                    _devicePath = $"usb:vid_{vidToFind:X4},pid_{pidToFind:X4}";
                     _deviceGuid = WinUsbGuid; // Use WinUSBGuid to signify LibUsbDotNet backend to QualcommSerial
-                    // Capture iSerial even without explicit pinning so subsequent re-enumerations latch back
-                    // onto this same logical device in a multi-device environment.
-                    _pinnedUsbSerial ??= TryReadUsbSerial(usbDevice);
                     Logging.Log($"LibUsbDotNet found device: VID={vidToFind:X4}, PID={pidToFind:X4} @ bus {usbDevice.BusNumber} addr {usbDevice.Address}. Path set to: {_devicePath}", LogLevel.Debug);
                     return true;
                 }
@@ -1147,6 +1172,7 @@ public sealed class EdlManager(EdlOptions globalOptions) : IDisposable
                 Logging.Log("Device is in Firehose mode. Establishing connection...", LogLevel.Debug);
                 _serialPort?.Dispose();
                 _serialPort = new(ResolveTransportPath());
+                CapturePinnedUsbSerial();
                 _firehoseClient = new(_serialPort);
                 _firehoseConfigured = false;
                 CurrentMode = DeviceMode.Firehose;
@@ -1173,6 +1199,7 @@ public sealed class EdlManager(EdlOptions globalOptions) : IDisposable
                 // Now establish the Firehose connection
                 Logging.Log("Connecting to re-enumerated device in Firehose mode...", LogLevel.Debug);
                 _serialPort = new(ResolveTransportPath());
+                CapturePinnedUsbSerial();
                 _firehoseClient = new(_serialPort);
 
                 FlushForResponse();
@@ -1247,6 +1274,7 @@ public sealed class EdlManager(EdlOptions globalOptions) : IDisposable
 
             _serialPort?.Dispose();
             _serialPort = new(ResolveTransportPath());
+            CapturePinnedUsbSerial();
             _saharaClient = new(_serialPort);
             _initialSaharaHelloPacket = null;
         }

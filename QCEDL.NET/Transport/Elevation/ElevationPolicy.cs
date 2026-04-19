@@ -5,7 +5,7 @@ namespace Qualcomm.EmergencyDownload.Transport.Elevation;
 
 /// <summary>
 /// Policy layer that decides when a session must be routed through the privileged helper.
-/// Callers consult <see cref="RequiresHelper"/> before handing a device path to
+/// Callers consult <see cref="RequiresHelper(TransportBackend)"/> before handing a device path to
 /// <see cref="QualcommSerial"/> so the GUI can surface a one-time authentication prompt.
 /// </summary>
 public static class ElevationPolicy
@@ -16,12 +16,20 @@ public static class ElevationPolicy
     /// <summary>
     /// True on hosts where the caller cannot access EDL USB/tty devices directly and must
     /// spawn a privileged helper instead. Currently macOS-only, and skipped when the process
-    /// is already running as root (e.g. <c>sudo edl-ng …</c>). Linux relies on udev rules and
-    /// Windows uses COM-port / WinUSB APIs that don't need elevation.
+    /// is already running as root (e.g. <c>sudo edl-ng …</c>) or when the LibUsb backend is
+    /// in use — libusb opens the device through IOKit's user-space USB API, which does not
+    /// require elevation for EDL devices that aren't claimed by a kernel driver. The serial
+    /// (tty.usbserial-*) backend goes through Apple's CDC driver, whose device nodes are
+    /// only accessible to <c>root</c>/<c>wheel</c>, hence the helper. Linux relies on udev
+    /// rules and Windows uses COM-port / WinUSB APIs that don't need elevation.
     /// </summary>
-    public static bool RequiresHelper()
+    public static bool RequiresHelper(TransportBackend backend)
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            return false;
+        }
+        if (backend == TransportBackend.LibUsb)
         {
             return false;
         }
@@ -59,7 +67,10 @@ public static class ElevationPolicy
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
-            return ProbeResult.NeedsHelper;
+            // LibUsb on macOS opens the USB device directly via IOKit and does not need elevation.
+            return candidate.Backend == TransportBackend.LibUsb
+                ? ProbeResult.Granted
+                : ProbeResult.NeedsHelper;
         }
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))

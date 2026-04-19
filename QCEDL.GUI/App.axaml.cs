@@ -4,6 +4,7 @@ using Avalonia.Markup.Xaml;
 using QCEDL.GUI.Services;
 using QCEDL.GUI.ViewModels;
 using QCEDL.GUI.Views;
+using QCEDL.NET.Logging;
 using Qualcomm.EmergencyDownload.Helpers;
 
 namespace QCEDL.GUI;
@@ -40,6 +41,11 @@ public class App : Application
             Logging.ConsoleSinkEnabled = false;
             var logSink = new ObservableLogSink();
             Logging.LogEmitted += logSink.Emit;
+
+            // Protocol-layer logs (Sahara/Firehose) flow through LibraryLogger; forward
+            // them into the same pipeline so the Logs view surfaces errors like
+            // "Transfer crash" / "Unexpected Sahara command" that would otherwise be dropped.
+            LibraryLogger.LogAction = (message, level, _, _, _) => Logging.Log(message, (Qualcomm.EmergencyDownload.Helpers.LogLevel)level);
 
             var edlService = new EdlService();
             var shell = new ShellViewModel(edlService, logSink);

@@ -79,6 +79,14 @@ public class QualcommSerial : IDisposable
 
     public CommunicationMode ActiveCommunicationMode { get; private set; } = CommunicationMode.None;
 
+    /// <summary>
+    /// USB iSerial read from the already-opened libusb handle. Populated after
+    /// <c>_libUsbDevice.Open()</c> succeeds so callers can latch onto the same logical
+    /// device across re-enumeration (Sahara → Firehose) without a transient pre-open
+    /// that would otherwise perturb the device state on macOS IOKit.
+    /// </summary>
+    public string? UsbSerialNumber { get; private set; }
+
     // Static constructor for LibUsb context
     static QualcommSerial()
     {
@@ -165,6 +173,7 @@ public class QualcommSerial : IDisposable
                             $"LibUsbDotNet: Device with VID=0x{vid:X4}, PID=0x{pid:X4}{(bus.HasValue && addr.HasValue ? $", bus={bus}, addr={addr}" : string.Empty)} not found.");
 
                     _libUsbDevice.Open();
+                    TryCaptureUsbSerial();
 
                     // seems to be unnecessary
                     // _libUsbDevice.SetConfiguration(1);
@@ -357,6 +366,26 @@ public class QualcommSerial : IDisposable
         }
 
         return (vid, pid);
+    }
+
+    /// <summary>
+    /// Reads the iSerial string from the already-open <see cref="_libUsbDevice"/> handle.
+    /// Safe on macOS because the device is already open — no transient open/close that
+    /// would perturb the device state mid-Sahara. Silently no-ops if the descriptor is
+    /// missing or the read throws.
+    /// </summary>
+    private void TryCaptureUsbSerial()
+    {
+        try
+        {
+            var sn = _libUsbDevice?.Info?.SerialNumber;
+            UsbSerialNumber = string.IsNullOrWhiteSpace(sn) ? null : sn;
+        }
+        catch (Exception ex)
+        {
+            LibraryLogger.Debug($"LibUsbDotNet: iSerial read from open handle failed: {ex.Message}");
+            UsbSerialNumber = null;
+        }
     }
 
     private static (byte? bus, byte? addr) ExtractBusAddrFromDevicePath(string devicePath)
