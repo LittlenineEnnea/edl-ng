@@ -13,7 +13,8 @@ public sealed class PartitionsViewModel : ViewModelBase
     private readonly EdlService _service;
     private string? _lunFilter;
     private bool _isBusy;
-    private string _statusText = "Not scanned.";
+    private string _statusKey = "Parts_StatusNotScanned";
+    private object?[] _statusArgs = [];
 
     public PartitionsViewModel(EdlService service)
     {
@@ -22,9 +23,12 @@ public sealed class PartitionsViewModel : ViewModelBase
         ScanCommand = ReactiveCommand.CreateFromTask(ScanAsync, canRun);
         ScanCommand.ThrownExceptions.Subscribe(ex =>
         {
-            Logging.Log($"GPT scan failed: {ex.Message}", LogLevel.Error);
-            StatusText = $"Error: {ex.Message}";
+            Logging.Log(Localizer.Instance.Format("Parts_LogScanFailedFormat", ex.Message), LogLevel.Error);
+            SetStatus("Parts_ErrorFormat", ex.Message);
         });
+
+        Localizer.Instance.CultureChanged += (_, _) =>
+            this.RaisePropertyChanged(nameof(StatusText));
     }
 
     public ObservableCollection<PartitionRow> Partitions { get; } = [];
@@ -41,13 +45,18 @@ public sealed class PartitionsViewModel : ViewModelBase
         private set => this.RaiseAndSetIfChanged(ref _isBusy, value);
     }
 
-    public string StatusText
-    {
-        get => _statusText;
-        private set => this.RaiseAndSetIfChanged(ref _statusText, value);
-    }
+    public string StatusText => _statusArgs.Length == 0
+        ? Localizer.Instance[_statusKey]
+        : Localizer.Instance.Format(_statusKey, _statusArgs);
 
     public ReactiveCommand<Unit, Unit> ScanCommand { get; }
+
+    private void SetStatus(string key, params object?[] args)
+    {
+        _statusKey = key;
+        _statusArgs = args;
+        this.RaisePropertyChanged(nameof(StatusText));
+    }
 
     private async Task ScanAsync()
     {
@@ -75,7 +84,7 @@ public sealed class PartitionsViewModel : ViewModelBase
                         var gpt = Gpt.ReadFromStream(stream, (int)geometry.SectorSize);
                         if (gpt is null)
                         {
-                            Logging.Log($"LUN {lun}: no GPT found.", LogLevel.Warning);
+                            Logging.Log(Localizer.Instance.Format("Parts_LogNoGptFormat", lun), LogLevel.Warning);
                             continue;
                         }
 
@@ -92,7 +101,7 @@ public sealed class PartitionsViewModel : ViewModelBase
                     }
                     catch (Exception ex)
                     {
-                        Logging.Log($"LUN {lun} scan error: {ex.Message}", LogLevel.Warning);
+                        Logging.Log(Localizer.Instance.Format("Parts_LogScanErrorFormat", lun, ex.Message), LogLevel.Warning);
                     }
 
                     if (m.IsDirectMode)
@@ -102,7 +111,7 @@ public sealed class PartitionsViewModel : ViewModelBase
                 }
             }).ConfigureAwait(false);
 
-            StatusText = $"Found {Partitions.Count} partition(s).";
+            SetStatus("Parts_StatusFoundFormat", Partitions.Count);
         }
         finally { IsBusy = false; }
     }

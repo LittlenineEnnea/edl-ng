@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="App_Title" xml:space="preserve"><value>edl-ng — Qualcomm EDL</value></data>
+  <data name="App_Brand" xml:space="preserve"><value>edl-ng</value></data>
+  <data name="App_Subtitle" xml:space="preserve"><value>Qualcomm Emergency Download</value></data>
+
+  <data name="Nav_Overview" xml:space="preserve"><value>Overview</value></data>
+  <data name="Nav_Connection" xml:space="preserve"><value>Connection</value></data>
+  <data name="Nav_Partitions" xml:space="preserve"><value>Partitions</value></data>
+  <data name="Nav_Sectors" xml:space="preserve"><value>Sectors</value></data>
+  <data name="Nav_RawProgram" xml:space="preserve"><value>RawProgram</value></data>
+  <data name="Nav_Advanced" xml:space="preserve"><value>Advanced</value></data>
+  <data name="Nav_Logs" xml:space="preserve"><value>Logs</value></data>
+  <data name="Nav_Settings" xml:space="preserve"><value>Settings</value></data>
+
+  <data name="Placeholder_ComingSoon" xml:space="preserve"><value>COMING SOON</value></data>
+  <data name="Placeholder_Sectors_Title" xml:space="preserve"><value>Sectors</value></data>
+  <data name="Placeholder_Sectors_Description" xml:space="preserve"><value>Read / write / erase ranges of LBAs. Tracked in gui-todos.md Phase 2.</value></data>
+  <data name="Placeholder_RawProgram_Title" xml:space="preserve"><value>RawProgram</value></data>
+  <data name="Placeholder_RawProgram_Description" xml:space="preserve"><value>Execute rawprogramN.xml + patchN.xml, or dump a LUN to rawprogram files. Tracked in gui-todos.md Phase 3.</value></data>
+  <data name="Placeholder_Advanced_Title" xml:space="preserve"><value>Advanced</value></data>
+  <data name="Placeholder_Advanced_Description" xml:space="preserve"><value>provision, upload-loader, reset. Tracked in gui-todos.md Phase 3.</value></data>
+
+  <data name="Overview_Label" xml:space="preserve"><value>OVERVIEW</value></data>
+  <data name="Overview_Display" xml:space="preserve"><value>A careful way to talk to devices.</value></data>
+  <data name="Overview_TagLine" xml:space="preserve"><value>A calm, literary front-end for the Qualcomm EDL toolchain.</value></data>
+  <data name="Overview_ConnectionHeader" xml:space="preserve"><value>Connection</value></data>
+  <data name="Overview_ConnectionCaption" xml:space="preserve"><value>Head to Connection to configure the target and establish a session. Destructive actions (write / erase / reset) will always ask for confirmation first.</value></data>
+  <data name="Overview_PartitionsTitle" xml:space="preserve"><value>Partitions</value></data>
+  <data name="Overview_PartitionsBody" xml:space="preserve"><value>Inspect the GPT, read or write named partitions, and export a rawprogram manifest.</value></data>
+  <data name="Overview_RawProgramTitle" xml:space="preserve"><value>RawProgram</value></data>
+  <data name="Overview_RawProgramBody" xml:space="preserve"><value>Run rawprogramN.xml + patchN.xml flashing flows, or dump the current device to a rawprogram set.</value></data>
+  <data name="Overview_ConnectedFormat" xml:space="preserve"><value>Connected — {0}</value></data>
+
+  <data name="Conn_Label" xml:space="preserve"><value>CONNECTION</value></data>
+  <data name="Conn_Heading" xml:space="preserve"><value>Target &amp; Session</value></data>
+  <data name="Conn_Body" xml:space="preserve"><value>Choose how to reach the device: USB via Sahara/Firehose, or a direct host-device backend. The GUI mirrors the CLI global options.</value></data>
+  <data name="Conn_ProgrammerCardTitle" xml:space="preserve"><value>Programmer &amp; Transport</value></data>
+  <data name="Conn_ProgrammerCardCaption" xml:space="preserve"><value>Choose libusb (WinUSB / LibUsbDotNet) or the serial driver. Auto picks libusb on Windows and serial on Linux/macOS.</value></data>
+  <data name="Conn_Loader" xml:space="preserve"><value>Loader (.elf / .xml)</value></data>
+  <data name="Conn_LoaderPlaceholder" xml:space="preserve"><value>Path to Firehose programmer or qsahara_device_programmer.xml</value></data>
+  <data name="Conn_Browse" xml:space="preserve"><value>Browse…</value></data>
+  <data name="Conn_Backend" xml:space="preserve"><value>Backend</value></data>
+  <data name="Conn_VidHex" xml:space="preserve"><value>USB VID (hex)</value></data>
+  <data name="Conn_VidPlaceholder" xml:space="preserve"><value>05C6</value></data>
+  <data name="Conn_PidHex" xml:space="preserve"><value>USB PID (hex)</value></data>
+  <data name="Conn_PidPlaceholder" xml:space="preserve"><value>9008</value></data>
+  <data name="Conn_SerialDevice" xml:space="preserve"><value>Serial device</value></data>
+  <data name="Conn_SerialPlaceholder" xml:space="preserve"><value>/dev/ttyUSB0, /dev/tty.usbserial-…, or auto-detect on Windows/Linux</value></data>
+  <data name="Conn_Memory" xml:space="preserve"><value>Memory</value></data>
+  <data name="Conn_Slot" xml:space="preserve"><value>Slot</value></data>
+  <data name="Conn_DirectCardTitle" xml:space="preserve"><value>Direct modes</value></data>
+  <data name="Conn_DirectCardCaption" xml:space="preserve"><value>Bypass USB/Firehose entirely when flashing a host block device or file-backed image.</value></data>
+  <data name="Conn_HostDevice" xml:space="preserve"><value>Host device</value></data>
+  <data name="Conn_HostDevicePlaceholder" xml:space="preserve"><value>/dev/mtd0 or /path/to/file.img</value></data>
+  <data name="Conn_ImageSize" xml:space="preserve"><value>Image size</value></data>
+  <data name="Conn_ImageSizePlaceholder" xml:space="preserve"><value>32M / 1G / 512K (only when creating a file)</value></data>
+  <data name="Conn_RadxaWos" xml:space="preserve"><value>Radxa WoS</value></data>
+  <data name="Conn_RadxaCheckbox" xml:space="preserve"><value>Use Radxa Windows-on-Snapdragon SPI NOR backend (Windows only)</value></data>
+  <data name="Conn_StatusTitle" xml:space="preserve"><value>Status</value></data>
+  <data name="Conn_ModeLabel" xml:space="preserve"><value>Mode:</value></data>
+  <data name="Conn_ConnectButton" xml:space="preserve"><value>Connect</value></data>
+  <data name="Conn_ProbeButton" xml:space="preserve"><value>Probe mode</value></data>
+  <data name="Conn_DisconnectButton" xml:space="preserve"><value>Disconnect</value></data>
+  <data name="Conn_StatusNotConnected" xml:space="preserve"><value>Not connected.</value></data>
+  <data name="Conn_ModeUnknown" xml:space="preserve"><value>Unknown</value></data>
+  <data name="Conn_ModeDirect" xml:space="preserve"><value>Direct</value></data>
+  <data name="Conn_ConnectFailedFormat" xml:space="preserve"><value>Connect failed: {0}</value></data>
+  <data name="Conn_ProbeFailedFormat" xml:space="preserve"><value>Probe failed: {0}</value></data>
+  <data name="Conn_LogProbing" xml:space="preserve"><value>Probing device mode...</value></data>
+  <data name="Conn_StatusDetectedFormat" xml:space="preserve"><value>Detected: {0}</value></data>
+  <data name="Conn_LogDirectSession" xml:space="preserve"><value>Direct-mode session (host device / Radxa WoS). No USB handshake required.</value></data>
+  <data name="Conn_StatusDirectReady" xml:space="preserve"><value>Direct mode ready.</value></data>
+  <data name="Conn_LogConnecting" xml:space="preserve"><value>Connecting to device (Sahara → Firehose)...</value></data>
+  <data name="Conn_StatusFirehoseConnected" xml:space="preserve"><value>Connected in Firehose mode.</value></data>
+  <data name="Conn_StatusDisconnected" xml:space="preserve"><value>Disconnected.</value></data>
+  <data name="Conn_LogSessionClosed" xml:space="preserve"><value>Session closed.</value></data>
+
+  <data name="Parts_Label" xml:space="preserve"><value>PARTITIONS</value></data>
+  <data name="Parts_Heading" xml:space="preserve"><value>GPT Inspector</value></data>
+  <data name="Parts_Body" xml:space="preserve"><value>Scan every LUN the device reports (or a specific one) and read the GUID Partition Table.</value></data>
+  <data name="Parts_LunLabel" xml:space="preserve"><value>LUN</value></data>
+  <data name="Parts_LunPlaceholder" xml:space="preserve"><value>all</value></data>
+  <data name="Parts_ScanButton" xml:space="preserve"><value>Scan</value></data>
+  <data name="Parts_HeaderLun" xml:space="preserve"><value>LUN</value></data>
+  <data name="Parts_HeaderIndex" xml:space="preserve"><value>#</value></data>
+  <data name="Parts_HeaderName" xml:space="preserve"><value>NAME</value></data>
+  <data name="Parts_HeaderFirstLba" xml:space="preserve"><value>FIRST LBA</value></data>
+  <data name="Parts_HeaderLastLba" xml:space="preserve"><value>LAST LBA</value></data>
+  <data name="Parts_HeaderSize" xml:space="preserve"><value>SIZE</value></data>
+  <data name="Parts_StatusNotScanned" xml:space="preserve"><value>Not scanned.</value></data>
+  <data name="Parts_ErrorFormat" xml:space="preserve"><value>Error: {0}</value></data>
+  <data name="Parts_LogScanFailedFormat" xml:space="preserve"><value>GPT scan failed: {0}</value></data>
+  <data name="Parts_LogNoGptFormat" xml:space="preserve"><value>LUN {0}: no GPT found.</value></data>
+  <data name="Parts_LogScanErrorFormat" xml:space="preserve"><value>LUN {0} scan error: {1}</value></data>
+  <data name="Parts_StatusFoundFormat" xml:space="preserve"><value>Found {0} partition(s).</value></data>
+
+  <data name="Logs_Label" xml:space="preserve"><value>LOGS</value></data>
+  <data name="Logs_Heading" xml:space="preserve"><value>Live output</value></data>
+  <data name="Logs_Body" xml:space="preserve"><value>Everything the protocol layer emits, mirrored from the shared logger. The same stream also goes to stdout when the GUI is launched from a terminal.</value></data>
+
+  <data name="Settings_Label" xml:space="preserve"><value>SETTINGS</value></data>
+  <data name="Settings_Heading" xml:space="preserve"><value>Preferences</value></data>
+  <data name="Settings_Body" xml:space="preserve"><value>Configure the GUI. Changes apply immediately.</value></data>
+  <data name="Settings_LanguageCardTitle" xml:space="preserve"><value>Language</value></data>
+  <data name="Settings_LanguageCardCaption" xml:space="preserve"><value>Choose the display language. Your choice is saved between sessions.</value></data>
+  <data name="Settings_LanguageLabel" xml:space="preserve"><value>Language</value></data>
+</root>

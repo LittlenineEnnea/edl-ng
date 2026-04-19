@@ -1,43 +1,44 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:QCEDL.GUI.ViewModels"
+             xmlns:l="clr-namespace:QCEDL.GUI.Markup"
              x:Class="QCEDL.GUI.Views.ConnectionView"
              x:DataType="vm:ConnectionViewModel">
-    <StackPanel Spacing="20" MaxWidth="780">
+    <StackPanel Spacing="20" MaxWidth="1040">
         <StackPanel Spacing="6">
-            <TextBlock Classes="label" Text="CONNECTION" />
-            <TextBlock Classes="h1" Text="Target &amp; Session" />
-            <TextBlock Classes="body" Text="Choose how to reach the device: USB via Sahara/Firehose, or a direct host-device backend. The GUI mirrors the CLI global options." />
+            <TextBlock Classes="label" Text="{l:Localize Conn_Label}" />
+            <TextBlock Classes="h1" Text="{l:Localize Conn_Heading}" />
+            <TextBlock Classes="body" Text="{l:Localize Conn_Body}" />
         </StackPanel>
 
         <!-- Programmer, USB & transport backend -->
         <Border Classes="card">
             <StackPanel Spacing="14">
-                <TextBlock Classes="h3" Text="Programmer &amp; Transport" />
-                <TextBlock Classes="caption" Text="Choose libusb (WinUSB / LibUsbDotNet) or the serial driver. Auto picks libusb on Windows and serial on Linux/macOS." />
+                <TextBlock Classes="h3" Text="{l:Localize Conn_ProgrammerCardTitle}" />
+                <TextBlock Classes="caption" Text="{l:Localize Conn_ProgrammerCardCaption}" />
                 <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="14">
-                    <TextBlock Grid.Row="0" Grid.Column="0" Classes="body" Text="Loader (.elf / .xml)" VerticalAlignment="Center" />
+                    <TextBlock Grid.Row="0" Grid.Column="0" Classes="body" Text="{l:Localize Conn_Loader}" VerticalAlignment="Center" />
                     <Grid Grid.Row="0" Grid.Column="1" ColumnDefinitions="*,Auto" ColumnSpacing="8">
-                        <TextBox Grid.Column="0" Text="{Binding LoaderPath}" PlaceholderText="Path to Firehose programmer or qsahara_device_programmer.xml" />
-                        <Button Grid.Column="1" Content="Browse…" Click="OnBrowseLoader" />
+                        <TextBox Grid.Column="0" Text="{Binding LoaderPath}" PlaceholderText="{l:Localize Conn_LoaderPlaceholder}" />
+                        <Button Grid.Column="1" Content="{l:Localize Conn_Browse}" Click="OnBrowseLoader" />
                     </Grid>
 
-                    <TextBlock Grid.Row="1" Grid.Column="0" Classes="body" Text="Backend" VerticalAlignment="Center" />
+                    <TextBlock Grid.Row="1" Grid.Column="0" Classes="body" Text="{l:Localize Conn_Backend}" VerticalAlignment="Center" />
                     <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Backends}" SelectedItem="{Binding Backend}" MinWidth="200" HorizontalAlignment="Left" />
 
-                    <TextBlock Grid.Row="2" Grid.Column="0" Classes="body" Text="USB VID (hex)" VerticalAlignment="Center" IsVisible="{Binding IsUsbBackend}" />
-                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding VidHex}" PlaceholderText="05C6" IsVisible="{Binding IsUsbBackend}" />
+                    <TextBlock Grid.Row="2" Grid.Column="0" Classes="body" Text="{l:Localize Conn_VidHex}" VerticalAlignment="Center" IsVisible="{Binding IsUsbBackend}" />
+                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding VidHex}" PlaceholderText="{l:Localize Conn_VidPlaceholder}" IsVisible="{Binding IsUsbBackend}" />
 
-                    <TextBlock Grid.Row="3" Grid.Column="0" Classes="body" Text="USB PID (hex)" VerticalAlignment="Center" IsVisible="{Binding IsUsbBackend}" />
-                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding PidHex}" PlaceholderText="9008" IsVisible="{Binding IsUsbBackend}" />
+                    <TextBlock Grid.Row="3" Grid.Column="0" Classes="body" Text="{l:Localize Conn_PidHex}" VerticalAlignment="Center" IsVisible="{Binding IsUsbBackend}" />
+                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding PidHex}" PlaceholderText="{l:Localize Conn_PidPlaceholder}" IsVisible="{Binding IsUsbBackend}" />
 
-                    <TextBlock Grid.Row="4" Grid.Column="0" Classes="body" Text="Serial device" VerticalAlignment="Center" IsVisible="{Binding IsSerialBackend}" />
-                    <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding SerialDevicePath}" PlaceholderText="/dev/ttyUSB0, /dev/tty.usbserial-…, or auto-detect on Windows/Linux" IsVisible="{Binding IsSerialBackend}" />
+                    <TextBlock Grid.Row="4" Grid.Column="0" Classes="body" Text="{l:Localize Conn_SerialDevice}" VerticalAlignment="Center" IsVisible="{Binding IsSerialBackend}" />
+                    <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding SerialDevicePath}" PlaceholderText="{l:Localize Conn_SerialPlaceholder}" IsVisible="{Binding IsSerialBackend}" />
 
-                    <TextBlock Grid.Row="5" Grid.Column="0" Classes="body" Text="Memory" VerticalAlignment="Center" />
+                    <TextBlock Grid.Row="5" Grid.Column="0" Classes="body" Text="{l:Localize Conn_Memory}" VerticalAlignment="Center" />
                     <ComboBox Grid.Row="5" Grid.Column="1" ItemsSource="{Binding MemoryTypes}" SelectedItem="{Binding MemoryType}" MinWidth="200" HorizontalAlignment="Left" />
 
-                    <TextBlock Grid.Row="6" Grid.Column="0" Classes="body" Text="Slot" VerticalAlignment="Center" />
+                    <TextBlock Grid.Row="6" Grid.Column="0" Classes="body" Text="{l:Localize Conn_Slot}" VerticalAlignment="Center" />
                     <NumericUpDown Grid.Row="6" Grid.Column="1" Value="{Binding Slot}" Minimum="0" Maximum="7" Increment="1" FormatString="0" MaxWidth="140" HorizontalAlignment="Left" />
                 </Grid>
             </StackPanel>
@@ -45,33 +46,33 @@
 
         <Border Classes="card">
             <StackPanel Spacing="14">
-                <TextBlock Classes="h3" Text="Direct modes" />
-                <TextBlock Classes="caption" Text="Bypass USB/Firehose entirely when flashing a host block device or file-backed image." />
+                <TextBlock Classes="h3" Text="{l:Localize Conn_DirectCardTitle}" />
+                <TextBlock Classes="caption" Text="{l:Localize Conn_DirectCardCaption}" />
                 <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="10" ColumnSpacing="14">
-                    <TextBlock Grid.Row="0" Grid.Column="0" Classes="body" Text="Host device" VerticalAlignment="Center" />
-                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding HostDevTarget}" PlaceholderText="/dev/mtd0 or /path/to/file.img" />
+                    <TextBlock Grid.Row="0" Grid.Column="0" Classes="body" Text="{l:Localize Conn_HostDevice}" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding HostDevTarget}" PlaceholderText="{l:Localize Conn_HostDevicePlaceholder}" />
 
-                    <TextBlock Grid.Row="1" Grid.Column="0" Classes="body" Text="Image size" VerticalAlignment="Center" />
-                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ImgSize}" PlaceholderText="32M / 1G / 512K (only when creating a file)" />
+                    <TextBlock Grid.Row="1" Grid.Column="0" Classes="body" Text="{l:Localize Conn_ImageSize}" VerticalAlignment="Center" />
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ImgSize}" PlaceholderText="{l:Localize Conn_ImageSizePlaceholder}" />
 
-                    <TextBlock Grid.Row="2" Grid.Column="0" Classes="body" Text="Radxa WoS" VerticalAlignment="Center" IsVisible="{Binding IsWindows}" />
-                    <CheckBox Grid.Row="2" Grid.Column="1" IsChecked="{Binding RadxaWos}" Content="Use Radxa Windows-on-Snapdragon SPI NOR backend (Windows only)" IsVisible="{Binding IsWindows}" />
+                    <TextBlock Grid.Row="2" Grid.Column="0" Classes="body" Text="{l:Localize Conn_RadxaWos}" VerticalAlignment="Center" IsVisible="{Binding IsWindows}" />
+                    <CheckBox Grid.Row="2" Grid.Column="1" IsChecked="{Binding RadxaWos}" Content="{l:Localize Conn_RadxaCheckbox}" IsVisible="{Binding IsWindows}" />
                 </Grid>
             </StackPanel>
         </Border>
 
         <Border Classes="card">
             <StackPanel Spacing="12">
-                <TextBlock Classes="h3" Text="Status" />
+                <TextBlock Classes="h3" Text="{l:Localize Conn_StatusTitle}" />
                 <TextBlock Classes="body" Text="{Binding StatusText}" />
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                    <TextBlock Classes="caption" Text="Mode:" />
+                    <TextBlock Classes="caption" Text="{l:Localize Conn_ModeLabel}" />
                     <TextBlock Classes="mono" Text="{Binding ModeText}" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Spacing="10">
-                    <Button Classes="primary" Content="Connect" Command="{Binding ConnectCommand}" />
-                    <Button Content="Probe mode" Command="{Binding ProbeCommand}" />
-                    <Button Classes="ghost" Content="Disconnect" Command="{Binding DisconnectCommand}" />
+                    <Button Classes="primary" Content="{l:Localize Conn_ConnectButton}" Command="{Binding ConnectCommand}" />
+                    <Button Content="{l:Localize Conn_ProbeButton}" Command="{Binding ProbeCommand}" />
+                    <Button Classes="ghost" Content="{l:Localize Conn_DisconnectButton}" Command="{Binding DisconnectCommand}" />
                     <ProgressBar IsVisible="{Binding IsBusy}" IsIndeterminate="True" Width="140" VerticalAlignment="Center" />
                 </StackPanel>
             </StackPanel>

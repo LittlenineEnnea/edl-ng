@@ -83,9 +83,14 @@
             <SolidColorBrush x:Key="BrushSelectionHaze" Color="{StaticResource ColorSelectionHaze}" />
 
             <!-- ═══ 3. Typography (DESIGN.md §3 hierarchy table) ══════════════ -->
-            <FontFamily x:Key="FontSerif">Georgia, Times New Roman, serif</FontFamily>
-            <FontFamily x:Key="FontSans">Inter, Helvetica Neue, Arial, sans-serif</FontFamily>
-            <FontFamily x:Key="FontMono">JetBrains Mono, Menlo, Consolas, monospace</FontFamily>
+            <!--
+                Serif / Sans / Mono fallback chains. Latin fonts come first (DESIGN.md §3),
+                then CJK (zh-Hans, zh-Hant, ja) families covering macOS, Windows, and Linux so
+                localized UI keeps the warm editorial voice instead of rendering tofu.
+            -->
+            <FontFamily x:Key="FontSerif">Georgia, Times New Roman, Songti SC, Songti TC, Hiragino Mincho ProN, Yu Mincho, YuMincho, Source Han Serif SC, Source Han Serif TC, Source Han Serif JP, Noto Serif CJK SC, Noto Serif CJK TC, Noto Serif CJK JP, Noto Serif SC, Noto Serif TC, Noto Serif JP, serif</FontFamily>
+            <FontFamily x:Key="FontSans">Inter, Helvetica Neue, Arial, PingFang SC, PingFang TC, Hiragino Sans, Hiragino Kaku Gothic ProN, Microsoft YaHei UI, Microsoft YaHei, Microsoft JhengHei UI, Microsoft JhengHei, Yu Gothic UI, Yu Gothic, Meiryo, Source Han Sans SC, Source Han Sans TC, Source Han Sans JP, Noto Sans CJK SC, Noto Sans CJK TC, Noto Sans CJK JP, Noto Sans SC, Noto Sans TC, Noto Sans JP, sans-serif</FontFamily>
+            <FontFamily x:Key="FontMono">JetBrains Mono, Menlo, Consolas, Sarasa Mono SC, Sarasa Mono TC, Sarasa Mono J, PingFang SC, PingFang TC, Hiragino Sans, Microsoft YaHei UI, Microsoft JhengHei UI, Yu Gothic UI, Noto Sans Mono CJK SC, Noto Sans Mono CJK TC, Noto Sans Mono CJK JP, monospace</FontFamily>
 
             <!-- ═══ 4. Radii (§5) ═════════════════════════════════════════════ -->
             <CornerRadius x:Key="RadiusSharp">4</CornerRadius>

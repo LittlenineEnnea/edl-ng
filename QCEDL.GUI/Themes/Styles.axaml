@@ -30,7 +30,7 @@
         <Setter Property="FontFamily" Value="{DynamicResource FontSerif}" />
         <Setter Property="FontSize" Value="56" />
         <Setter Property="FontWeight" Value="Medium" />
-        <Setter Property="LineHeight" Value="62" />
+        <Setter Property="LineHeight" Value="74" />
         <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
@@ -39,7 +39,7 @@
         <Setter Property="FontFamily" Value="{DynamicResource FontSerif}" />
         <Setter Property="FontSize" Value="44" />
         <Setter Property="FontWeight" Value="Medium" />
-        <Setter Property="LineHeight" Value="53" />
+        <Setter Property="LineHeight" Value="60" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
@@ -47,7 +47,7 @@
         <Setter Property="FontFamily" Value="{DynamicResource FontSerif}" />
         <Setter Property="FontSize" Value="32" />
         <Setter Property="FontWeight" Value="Medium" />
-        <Setter Property="LineHeight" Value="42" />
+        <Setter Property="LineHeight" Value="44" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
@@ -55,7 +55,7 @@
         <Setter Property="FontFamily" Value="{DynamicResource FontSerif}" />
         <Setter Property="FontSize" Value="26" />
         <Setter Property="FontWeight" Value="Medium" />
-        <Setter Property="LineHeight" Value="29" />
+        <Setter Property="LineHeight" Value="36" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
@@ -63,7 +63,7 @@
         <Setter Property="FontFamily" Value="{DynamicResource FontSerif}" />
         <Setter Property="FontSize" Value="22" />
         <Setter Property="FontWeight" Value="Medium" />
-        <Setter Property="LineHeight" Value="27" />
+        <Setter Property="LineHeight" Value="30" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
@@ -71,7 +71,7 @@
         <Setter Property="FontFamily" Value="{DynamicResource FontSerif}" />
         <Setter Property="FontSize" Value="18" />
         <Setter Property="FontWeight" Value="Medium" />
-        <Setter Property="LineHeight" Value="22" />
+        <Setter Property="LineHeight" Value="26" />
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 

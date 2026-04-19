@@ -17,16 +17,18 @@ public sealed class ShellViewModel : ViewModelBase
         Connection = new ConnectionViewModel(edlService);
         Overview = new OverviewViewModel(edlService, Connection);
         Partitions = new PartitionsViewModel(edlService);
+        Settings = new SettingsViewModel();
 
         NavigationItems =
         [
-            new NavigationItem("Overview", Overview),
-            new NavigationItem("Connection", Connection),
-            new NavigationItem("Partitions", Partitions),
-            new NavigationItem("Sectors", new PlaceholderViewModel("Sectors", "Read / write / erase ranges of LBAs. Tracked in gui-todos.md Phase 2.")),
-            new NavigationItem("RawProgram", new PlaceholderViewModel("RawProgram", "Execute rawprogramN.xml + patchN.xml, or dump a LUN to rawprogram files. Tracked in gui-todos.md Phase 3.")),
-            new NavigationItem("Advanced", new PlaceholderViewModel("Advanced", "provision, upload-loader, reset. Tracked in gui-todos.md Phase 3.")),
-            new NavigationItem("Logs", Logs),
+            new NavigationItem("Nav_Overview", Overview),
+            new NavigationItem("Nav_Connection", Connection),
+            new NavigationItem("Nav_Partitions", Partitions),
+            new NavigationItem("Nav_Sectors", new PlaceholderViewModel("Placeholder_Sectors_Title", "Placeholder_Sectors_Description")),
+            new NavigationItem("Nav_RawProgram", new PlaceholderViewModel("Placeholder_RawProgram_Title", "Placeholder_RawProgram_Description")),
+            new NavigationItem("Nav_Advanced", new PlaceholderViewModel("Placeholder_Advanced_Title", "Placeholder_Advanced_Description")),
+            new NavigationItem("Nav_Logs", Logs),
+            new NavigationItem("Nav_Settings", Settings),
         ];
         _selected = NavigationItems[0];
     }
@@ -43,18 +45,38 @@ public sealed class ShellViewModel : ViewModelBase
     public ConnectionViewModel Connection { get; }
     public PartitionsViewModel Partitions { get; }
     public LogsViewModel Logs { get; }
+    public SettingsViewModel Settings { get; }
 }
 
-public sealed record NavigationItem(string Title, ViewModelBase Content);
+public sealed class NavigationItem : ViewModelBase
+{
+    public NavigationItem(string titleKey, ViewModelBase content)
+    {
+        TitleKey = titleKey;
+        Content = content;
+        Localizer.Instance.CultureChanged += (_, _) => this.RaisePropertyChanged(nameof(Title));
+    }
+
+    public string TitleKey { get; }
+    public ViewModelBase Content { get; }
+    public string Title => Localizer.Instance[TitleKey];
+}
 
 public sealed class PlaceholderViewModel : ViewModelBase
 {
-    public PlaceholderViewModel(string title, string description)
+    public PlaceholderViewModel(string titleKey, string descriptionKey)
     {
-        Title = title;
-        Description = description;
+        TitleKey = titleKey;
+        DescriptionKey = descriptionKey;
+        Localizer.Instance.CultureChanged += (_, _) =>
+        {
+            this.RaisePropertyChanged(nameof(Title));
+            this.RaisePropertyChanged(nameof(Description));
+        };
     }
 
-    public string Title { get; }
-    public string Description { get; }
+    public string TitleKey { get; }
+    public string DescriptionKey { get; }
+    public string Title => Localizer.Instance[TitleKey];
+    public string Description => Localizer.Instance[DescriptionKey];
 }

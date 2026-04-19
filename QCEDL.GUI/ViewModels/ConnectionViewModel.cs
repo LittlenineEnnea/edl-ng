@@ -22,8 +22,10 @@ public sealed class ConnectionViewModel : ViewModelBase
     private bool _radxaWos;
     private TransportBackend _backend = TransportBackend.Auto;
     private string? _serialDevicePath;
-    private string _statusText = "Not connected.";
-    private string _modeText = "Unknown";
+    private string _statusKey = "Conn_StatusNotConnected";
+    private object?[] _statusArgs = [];
+    private string _modeKey = "Conn_ModeUnknown";
+    private string? _modeLiteral;
     private bool _isBusy;
 
     public ConnectionViewModel(EdlService service)
@@ -40,8 +42,16 @@ public sealed class ConnectionViewModel : ViewModelBase
         Backends = Enum.GetValues<TransportBackend>();
 
         // Surface async errors as log entries rather than swallowing them.
-        ConnectCommand.ThrownExceptions.Subscribe(ex => Logging.Log($"Connect failed: {ex.Message}", LogLevel.Error));
-        ProbeCommand.ThrownExceptions.Subscribe(ex => Logging.Log($"Probe failed: {ex.Message}", LogLevel.Error));
+        ConnectCommand.ThrownExceptions.Subscribe(ex =>
+            Logging.Log(Localizer.Instance.Format("Conn_ConnectFailedFormat", ex.Message), LogLevel.Error));
+        ProbeCommand.ThrownExceptions.Subscribe(ex =>
+            Logging.Log(Localizer.Instance.Format("Conn_ProbeFailedFormat", ex.Message), LogLevel.Error));
+
+        Localizer.Instance.CultureChanged += (_, _) =>
+        {
+            this.RaisePropertyChanged(nameof(StatusText));
+            this.RaisePropertyChanged(nameof(ModeText));
+        };
     }
 
     public IReadOnlyList<StorageType> MemoryTypes { get; }
@@ -107,16 +117,13 @@ public sealed class ConnectionViewModel : ViewModelBase
         get => _serialDevicePath;
         set => this.RaiseAndSetIfChanged(ref _serialDevicePath, value);
     }
-    public string StatusText
-    {
-        get => _statusText;
-        private set => this.RaiseAndSetIfChanged(ref _statusText, value);
-    }
-    public string ModeText
-    {
-        get => _modeText;
-        private set => this.RaiseAndSetIfChanged(ref _modeText, value);
-    }
+
+    public string StatusText => _statusArgs.Length == 0
+        ? Localizer.Instance[_statusKey]
+        : Localizer.Instance.Format(_statusKey, _statusArgs);
+
+    public string ModeText => _modeLiteral ?? Localizer.Instance[_modeKey];
+
     public bool IsBusy
     {
         get => _isBusy;
@@ -126,6 +133,26 @@ public sealed class ConnectionViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> ConnectCommand { get; }
     public ReactiveCommand<Unit, Unit> ProbeCommand { get; }
     public ReactiveCommand<Unit, Unit> DisconnectCommand { get; }
+
+    private void SetStatus(string key, params object?[] args)
+    {
+        _statusKey = key;
+        _statusArgs = args;
+        this.RaisePropertyChanged(nameof(StatusText));
+    }
+
+    private void SetModeKey(string key)
+    {
+        _modeKey = key;
+        _modeLiteral = null;
+        this.RaisePropertyChanged(nameof(ModeText));
+    }
+
+    private void SetModeLiteral(string literal)
+    {
+        _modeLiteral = literal;
+        this.RaisePropertyChanged(nameof(ModeText));
+    }
 
     private void ApplyOptions()
     {
@@ -154,10 +181,10 @@ public sealed class ConnectionViewModel : ViewModelBase
         try
         {
             ApplyOptions();
-            Logging.Log("Probing device mode...", LogLevel.Info);
+            Logging.Log(Localizer.Instance["Conn_LogProbing"], LogLevel.Info);
             var mode = await _service.ProbeAsync().ConfigureAwait(false);
-            ModeText = mode.ToString();
-            StatusText = $"Detected: {mode}";
+            SetModeLiteral(mode.ToString());
+            SetStatus("Conn_StatusDetectedFormat", mode);
         }
         finally { IsBusy = false; }
     }
@@ -170,16 +197,16 @@ public sealed class ConnectionViewModel : ViewModelBase
             ApplyOptions();
             if (_service.Options.HostDevAsTarget != null || _service.Options.RadxaWosPlatform)
             {
-                Logging.Log("Direct-mode session (host device / Radxa WoS). No USB handshake required.", LogLevel.Info);
-                StatusText = "Direct mode ready.";
-                ModeText = "Direct";
+                Logging.Log(Localizer.Instance["Conn_LogDirectSession"], LogLevel.Info);
+                SetStatus("Conn_StatusDirectReady");
+                SetModeKey("Conn_ModeDirect");
                 return;
             }
 
-            Logging.Log("Connecting to device (Sahara → Firehose)...", LogLevel.Info);
+            Logging.Log(Localizer.Instance["Conn_LogConnecting"], LogLevel.Info);
             await _service.EnsureFirehoseAsync().ConfigureAwait(false);
-            ModeText = _service.CurrentMode.ToString();
-            StatusText = "Connected in Firehose mode.";
+            SetModeLiteral(_service.CurrentMode.ToString());
+            SetStatus("Conn_StatusFirehoseConnected");
         }
         finally { IsBusy = false; }
     }
@@ -187,9 +214,9 @@ public sealed class ConnectionViewModel : ViewModelBase
     private void Disconnect()
     {
         _service.ResetSession();
-        StatusText = "Disconnected.";
-        ModeText = "Unknown";
-        Logging.Log("Session closed.", LogLevel.Info);
+        SetStatus("Conn_StatusDisconnected");
+        SetModeKey("Conn_ModeUnknown");
+        Logging.Log(Localizer.Instance["Conn_LogSessionClosed"], LogLevel.Info);
     }
 
     private static int? TryParseHex(string? s)

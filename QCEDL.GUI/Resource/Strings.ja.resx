@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <data name="App_Title" xml:space="preserve"><value>edl-ng — クアルコム EDL</value></data>
+  <data name="App_Brand" xml:space="preserve"><value>edl-ng</value></data>
+  <data name="App_Subtitle" xml:space="preserve"><value>クアルコム 緊急ダウンロード</value></data>
+
+  <data name="Nav_Overview" xml:space="preserve"><value>概要</value></data>
+  <data name="Nav_Connection" xml:space="preserve"><value>接続</value></data>
+  <data name="Nav_Partitions" xml:space="preserve"><value>パーティション</value></data>
+  <data name="Nav_Sectors" xml:space="preserve"><value>セクター</value></data>
+  <data name="Nav_RawProgram" xml:space="preserve"><value>ロープログラム</value></data>
+  <data name="Nav_Advanced" xml:space="preserve"><value>詳細</value></data>
+  <data name="Nav_Logs" xml:space="preserve"><value>ログ</value></data>
+  <data name="Nav_Settings" xml:space="preserve"><value>設定</value></data>
+
+  <data name="Placeholder_ComingSoon" xml:space="preserve"><value>近日公開</value></data>
+  <data name="Placeholder_Sectors_Title" xml:space="preserve"><value>セクター</value></data>
+  <data name="Placeholder_Sectors_Description" xml:space="preserve"><value>LBA 範囲の読み取り / 書き込み / 消去。gui-todos.md フェーズ 2 で追跡中。</value></data>
+  <data name="Placeholder_RawProgram_Title" xml:space="preserve"><value>ロープログラム</value></data>
+  <data name="Placeholder_RawProgram_Description" xml:space="preserve"><value>rawprogramN.xml + patchN.xml の書き込みフローを実行、または LUN を rawprogram ファイルとしてダンプします。gui-todos.md フェーズ 3 で追跡中。</value></data>
+  <data name="Placeholder_Advanced_Title" xml:space="preserve"><value>詳細</value></data>
+  <data name="Placeholder_Advanced_Description" xml:space="preserve"><value>provision、upload-loader、reset。gui-todos.md フェーズ 3 で追跡中。</value></data>
+
+  <data name="Overview_Label" xml:space="preserve"><value>概要</value></data>
+  <data name="Overview_Display" xml:space="preserve"><value>デバイスと丁寧に対話する方法。</value></data>
+  <data name="Overview_TagLine" xml:space="preserve"><value>クアルコム EDL ツールチェーンのための、静かで読みやすいフロントエンド。</value></data>
+  <data name="Overview_ConnectionHeader" xml:space="preserve"><value>接続</value></data>
+  <data name="Overview_ConnectionCaption" xml:space="preserve"><value>「接続」へ移動してターゲットを設定し、セッションを開始してください。破壊的な操作(書き込み / 消去 / リセット)は常に事前に確認します。</value></data>
+  <data name="Overview_PartitionsTitle" xml:space="preserve"><value>パーティション</value></data>
+  <data name="Overview_PartitionsBody" xml:space="preserve"><value>GPT を確認し、名前付きパーティションを読み書きして、rawprogram マニフェストを書き出します。</value></data>
+  <data name="Overview_RawProgramTitle" xml:space="preserve"><value>ロープログラム</value></data>
+  <data name="Overview_RawProgramBody" xml:space="preserve"><value>rawprogramN.xml + patchN.xml のフラッシュフローを実行、または現在のデバイスを rawprogram セットとしてダンプします。</value></data>
+  <data name="Overview_ConnectedFormat" xml:space="preserve"><value>接続済み — {0}</value></data>
+
+  <data name="Conn_Label" xml:space="preserve"><value>接続</value></data>
+  <data name="Conn_Heading" xml:space="preserve"><value>ターゲットとセッション</value></data>
+  <data name="Conn_Body" xml:space="preserve"><value>デバイスへの接続方法を選択します: USB 経由の サハラ/ファイアホース、または直接ホストデバイスバックエンド。GUI は CLI のグローバルオプションを反映します。</value></data>
+  <data name="Conn_ProgrammerCardTitle" xml:space="preserve"><value>プログラマー とトランスポート</value></data>
+  <data name="Conn_ProgrammerCardCaption" xml:space="preserve"><value>libusb(WinUSB / LibUsbDotNet)またはシリアルドライバを選択します。自動では ウィンドウズ で libusb、リナックス/macOS でシリアルを選択します。</value></data>
+  <data name="Conn_Loader" xml:space="preserve"><value>ローダー(.elf / .xml)</value></data>
+  <data name="Conn_LoaderPlaceholder" xml:space="preserve"><value>ファイアホース プログラマー または qsahara_device_programmer.xml のパス</value></data>
+  <data name="Conn_Browse" xml:space="preserve"><value>参照…</value></data>
+  <data name="Conn_Backend" xml:space="preserve"><value>バックエンド</value></data>
+  <data name="Conn_VidHex" xml:space="preserve"><value>USB VID(16 進)</value></data>
+  <data name="Conn_VidPlaceholder" xml:space="preserve"><value>05C6</value></data>
+  <data name="Conn_PidHex" xml:space="preserve"><value>USB PID(16 進)</value></data>
+  <data name="Conn_PidPlaceholder" xml:space="preserve"><value>9008</value></data>
+  <data name="Conn_SerialDevice" xml:space="preserve"><value>シリアルデバイス</value></data>
+  <data name="Conn_SerialPlaceholder" xml:space="preserve"><value>/dev/ttyUSB0、/dev/tty.usbserial-…、または ウィンドウズ/リナックス で自動検出</value></data>
+  <data name="Conn_Memory" xml:space="preserve"><value>メモリ</value></data>
+  <data name="Conn_Slot" xml:space="preserve"><value>スロット</value></data>
+  <data name="Conn_DirectCardTitle" xml:space="preserve"><value>ダイレクトモード</value></data>
+  <data name="Conn_DirectCardCaption" xml:space="preserve"><value>ホストブロックデバイスやファイルイメージへの書き込み時に、USB / ファイアホース を完全にバイパスします。</value></data>
+  <data name="Conn_HostDevice" xml:space="preserve"><value>ホストデバイス</value></data>
+  <data name="Conn_HostDevicePlaceholder" xml:space="preserve"><value>/dev/mtd0 または /path/to/file.img</value></data>
+  <data name="Conn_ImageSize" xml:space="preserve"><value>イメージサイズ</value></data>
+  <data name="Conn_ImageSizePlaceholder" xml:space="preserve"><value>32M / 1G / 512K(ファイル作成時のみ)</value></data>
+  <data name="Conn_RadxaWos" xml:space="preserve"><value>Radxa WoS</value></data>
+  <data name="Conn_RadxaCheckbox" xml:space="preserve"><value>Radxa Windows-on-Snapdragon SPI NOR バックエンドを使用(ウィンドウズ のみ)</value></data>
+  <data name="Conn_StatusTitle" xml:space="preserve"><value>状態</value></data>
+  <data name="Conn_ModeLabel" xml:space="preserve"><value>モード:</value></data>
+  <data name="Conn_ConnectButton" xml:space="preserve"><value>接続</value></data>
+  <data name="Conn_ProbeButton" xml:space="preserve"><value>モード検出</value></data>
+  <data name="Conn_DisconnectButton" xml:space="preserve"><value>切断</value></data>
+  <data name="Conn_StatusNotConnected" xml:space="preserve"><value>未接続です。</value></data>
+  <data name="Conn_ModeUnknown" xml:space="preserve"><value>不明</value></data>
+  <data name="Conn_ModeDirect" xml:space="preserve"><value>ダイレクト</value></data>
+  <data name="Conn_ConnectFailedFormat" xml:space="preserve"><value>接続に失敗しました: {0}</value></data>
+  <data name="Conn_ProbeFailedFormat" xml:space="preserve"><value>検出に失敗しました: {0}</value></data>
+  <data name="Conn_LogProbing" xml:space="preserve"><value>デバイスモードを検出しています…</value></data>
+  <data name="Conn_StatusDetectedFormat" xml:space="preserve"><value>検出: {0}</value></data>
+  <data name="Conn_LogDirectSession" xml:space="preserve"><value>ダイレクトモードセッション(ホストデバイス / Radxa WoS)。USB ハンドシェイクは不要です。</value></data>
+  <data name="Conn_StatusDirectReady" xml:space="preserve"><value>ダイレクトモードの準備ができました。</value></data>
+  <data name="Conn_LogConnecting" xml:space="preserve"><value>デバイスに接続しています(サハラ → ファイアホース)…</value></data>
+  <data name="Conn_StatusFirehoseConnected" xml:space="preserve"><value>ファイアホース モードで接続しました。</value></data>
+  <data name="Conn_StatusDisconnected" xml:space="preserve"><value>切断しました。</value></data>
+  <data name="Conn_LogSessionClosed" xml:space="preserve"><value>セッションを閉じました。</value></data>
+
+  <data name="Parts_Label" xml:space="preserve"><value>パーティション</value></data>
+  <data name="Parts_Heading" xml:space="preserve"><value>GPT インスペクター</value></data>
+  <data name="Parts_Body" xml:space="preserve"><value>デバイスが報告するすべての LUN(または指定の LUN)をスキャンし、GUID パーティションテーブルを読み取ります。</value></data>
+  <data name="Parts_LunLabel" xml:space="preserve"><value>LUN</value></data>
+  <data name="Parts_LunPlaceholder" xml:space="preserve"><value>all</value></data>
+  <data name="Parts_ScanButton" xml:space="preserve"><value>スキャン</value></data>
+  <data name="Parts_HeaderLun" xml:space="preserve"><value>LUN</value></data>
+  <data name="Parts_HeaderIndex" xml:space="preserve"><value>#</value></data>
+  <data name="Parts_HeaderName" xml:space="preserve"><value>名前</value></data>
+  <data name="Parts_HeaderFirstLba" xml:space="preserve"><value>開始 LBA</value></data>
+  <data name="Parts_HeaderLastLba" xml:space="preserve"><value>終了 LBA</value></data>
+  <data name="Parts_HeaderSize" xml:space="preserve"><value>サイズ</value></data>
+  <data name="Parts_StatusNotScanned" xml:space="preserve"><value>未スキャンです。</value></data>
+  <data name="Parts_ErrorFormat" xml:space="preserve"><value>エラー: {0}</value></data>
+  <data name="Parts_LogScanFailedFormat" xml:space="preserve"><value>GPT スキャンに失敗しました: {0}</value></data>
+  <data name="Parts_LogNoGptFormat" xml:space="preserve"><value>LUN {0}: GPT が見つかりませんでした。</value></data>
+  <data name="Parts_LogScanErrorFormat" xml:space="preserve"><value>LUN {0} スキャンエラー: {1}</value></data>
+  <data name="Parts_StatusFoundFormat" xml:space="preserve"><value>{0} 個のパーティションが見つかりました。</value></data>
+
+  <data name="Logs_Label" xml:space="preserve"><value>ログ</value></data>
+  <data name="Logs_Heading" xml:space="preserve"><value>ライブ出力</value></data>
+  <data name="Logs_Body" xml:space="preserve"><value>共有ロガーから転送される、プロトコル層のすべての出力。GUI をターミナルから起動した場合、同じストリームが標準出力にも書き込まれます。</value></data>
+
+  <data name="Settings_Label" xml:space="preserve"><value>設定</value></data>
+  <data name="Settings_Heading" xml:space="preserve"><value>環境設定</value></data>
+  <data name="Settings_Body" xml:space="preserve"><value>GUI を設定します。変更はすぐに反映されます。</value></data>
+  <data name="Settings_LanguageCardTitle" xml:space="preserve"><value>言語</value></data>
+  <data name="Settings_LanguageCardCaption" xml:space="preserve"><value>表示言語を選択します。選択はセッション間で保存されます。</value></data>
+  <data name="Settings_LanguageLabel" xml:space="preserve"><value>言語</value></data>
+</root>

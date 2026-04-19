@@ -2,9 +2,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:QCEDL.GUI.ViewModels"
         xmlns:v="clr-namespace:QCEDL.GUI.Views"
+        xmlns:l="clr-namespace:QCEDL.GUI.Markup"
         x:Class="QCEDL.GUI.Views.MainWindow"
         x:DataType="vm:ShellViewModel"
-        Title="edl-ng — Qualcomm EDL"
+        Title="{l:Localize App_Title}"
         Width="1180" Height="760"
         MinWidth="920" MinHeight="560">
     <Grid ColumnDefinitions="240,*">
@@ -13,8 +14,8 @@
         <Border Grid.Column="0" Classes="nav">
             <DockPanel LastChildFill="True">
                 <StackPanel DockPanel.Dock="Top" Margin="20,24,20,16" Spacing="2">
-                    <TextBlock Classes="h2" Text="edl-ng" />
-                    <TextBlock Classes="caption" Text="Qualcomm Emergency Download" />
+                    <TextBlock Classes="h2" Text="{l:Localize App_Brand}" />
+                    <TextBlock Classes="caption" Text="{l:Localize App_Subtitle}" />
                 </StackPanel>
                 <Separator DockPanel.Dock="Top" Margin="16,0,16,8" />
                 <ListBox
@@ -54,6 +55,9 @@
                     </DataTemplate>
                     <DataTemplate DataType="vm:LogsViewModel">
                         <v:LogsView />
+                    </DataTemplate>
+                    <DataTemplate DataType="vm:SettingsViewModel">
+                        <v:SettingsView />
                     </DataTemplate>
                     <DataTemplate DataType="vm:PlaceholderViewModel">
                         <v:PlaceholderView />

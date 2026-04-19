@@ -2,21 +2,22 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:QCEDL.GUI.ViewModels"
              xmlns:svc="clr-namespace:QCEDL.GUI.Services"
+             xmlns:l="clr-namespace:QCEDL.GUI.Markup"
              x:Class="QCEDL.GUI.Views.PartitionsView"
              x:DataType="vm:PartitionsViewModel">
-    <StackPanel Spacing="20">
+    <StackPanel Spacing="20" MaxWidth="1040">
         <StackPanel Spacing="6">
-            <TextBlock Classes="label" Text="PARTITIONS" />
-            <TextBlock Classes="h1" Text="GPT Inspector" />
-            <TextBlock Classes="body" Text="Scan every LUN the device reports (or a specific one) and read the GUID Partition Table." />
+            <TextBlock Classes="label" Text="{l:Localize Parts_Label}" />
+            <TextBlock Classes="h1" Text="{l:Localize Parts_Heading}" />
+            <TextBlock Classes="body" Text="{l:Localize Parts_Body}" />
         </StackPanel>
 
         <Border Classes="card">
             <StackPanel Spacing="12">
                 <StackPanel Orientation="Horizontal" Spacing="10">
-                    <TextBlock Classes="body" Text="LUN" VerticalAlignment="Center" />
-                    <TextBox Text="{Binding LunFilter}" PlaceholderText="all" Width="100" />
-                    <Button Classes="primary" Content="Scan" Command="{Binding ScanCommand}" />
+                    <TextBlock Classes="body" Text="{l:Localize Parts_LunLabel}" VerticalAlignment="Center" />
+                    <TextBox Text="{Binding LunFilter}" PlaceholderText="{l:Localize Parts_LunPlaceholder}" Width="100" />
+                    <Button Classes="primary" Content="{l:Localize Parts_ScanButton}" Command="{Binding ScanCommand}" />
                     <ProgressBar IsVisible="{Binding IsBusy}" IsIndeterminate="True" Width="140" VerticalAlignment="Center" />
                 </StackPanel>
                 <TextBlock Classes="caption" Text="{Binding StatusText}" />
@@ -26,12 +27,12 @@
         <Border Classes="card">
             <DockPanel LastChildFill="True">
                 <Grid DockPanel.Dock="Top" ColumnDefinitions="60,60,*,140,140,140" Margin="0,0,0,8">
-                    <TextBlock Grid.Column="0" Classes="label" Text="LUN" />
-                    <TextBlock Grid.Column="1" Classes="label" Text="#" />
-                    <TextBlock Grid.Column="2" Classes="label" Text="NAME" />
-                    <TextBlock Grid.Column="3" Classes="label" Text="FIRST LBA" />
-                    <TextBlock Grid.Column="4" Classes="label" Text="LAST LBA" />
-                    <TextBlock Grid.Column="5" Classes="label" Text="SIZE" />
+                    <TextBlock Grid.Column="0" Classes="label" Text="{l:Localize Parts_HeaderLun}" />
+                    <TextBlock Grid.Column="1" Classes="label" Text="{l:Localize Parts_HeaderIndex}" />
+                    <TextBlock Grid.Column="2" Classes="label" Text="{l:Localize Parts_HeaderName}" />
+                    <TextBlock Grid.Column="3" Classes="label" Text="{l:Localize Parts_HeaderFirstLba}" />
+                    <TextBlock Grid.Column="4" Classes="label" Text="{l:Localize Parts_HeaderLastLba}" />
+                    <TextBlock Grid.Column="5" Classes="label" Text="{l:Localize Parts_HeaderSize}" />
                 </Grid>
                 <Separator DockPanel.Dock="Top" />
                 <ItemsControl ItemsSource="{Binding Partitions}">

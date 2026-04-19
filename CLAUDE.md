@@ -60,6 +60,19 @@ The GUI's look is a Claude-inspired warm theme derived directly from `DESIGN.md`
 
 When adding a new control, write its `ControlTheme` in `Controls.axaml` (not views) and only use `DynamicResource` brushes/radii — never inline hex literals. If you need a new visual variant of an existing control, add a class-selector rule to `Styles.axaml`.
 
+## GUI localization, fonts, settings
+
+The GUI is localized and runtime-switchable between English, Simplified Chinese, Traditional Chinese, and Japanese.
+
+- `QCEDL.GUI/Resource/Strings.resx` (+ `.zh-Hans.resx`, `.zh-Hant.resx`, `.ja.resx`) are the string tables. They're auto-included as `EmbeddedResource` by the SDK — don't list them in the csproj. The base resource lives at `QCEDL.GUI.Resource.Strings`.
+- `QCEDL.GUI/Services/Localizer.cs` is a singleton (`Localizer.Instance`) that wraps the `ResourceManager` and exposes an indexer `this[key]`. Setting `Culture` raises `PropertyChanged("Item[]")` so every live binding re-resolves, and fires a `CultureChanged` event for imperative consumers (e.g. the font swapper).
+- `QCEDL.GUI/Markup/LocalizeExtension.cs` is the XAML side: `Text="{l:Localize Nav_Overview}"` compiles to a `OneWay` `Binding` against `Localizer.Instance` with path `[Nav_Overview]`. Prefer this over ad-hoc `{Binding [Key], Source=…}`.
+- `QCEDL.GUI/Services/FontTheme.cs` picks the primary `FontSerif` / `FontSans` / `FontMono` family chain based on the active culture and assigns them to `Application.Current.Resources`. This is needed because Avalonia's per-glyph fallback inside a single `FontFamily` does not pick a CJK *serif* face — the primary family has to be culture-specific. `App.axaml.cs` calls `FontTheme.Apply` on startup and re-runs it on every `CultureChanged`.
+- `QCEDL.GUI/Services/GuiSettings.cs` persists preferences (currently `culture`) as JSON under `%APPDATA%/edl-ng/gui-settings.json` (or the platform equivalent). `ResolveStartupCulture` falls back from persisted → OS UI culture (exact match, then two-letter language) → `en`. Load happens in `App.OnFrameworkInitializationCompleted` **before** any view is built so initial bindings see the right language.
+- `SettingsViewModel` + `SettingsView` expose the language picker; changing it updates `Localizer.Instance.Culture` and saves via `GuiSettings.Save`.
+
+When adding a new user-facing string: add it to `Strings.resx` with an English value, then to each translated `.resx`, and reference it in XAML via `{l:Localize KeyName}` or in code via `Localizer.Instance["KeyName"]`. Don't hard-code user-visible literals in views.
+
 ## GUI implementation tracker
 
 `gui-todos.md` at the repo root is a living tracker — CLI feature inventory, GUI screen mapping, per-capability status, and phased rollout. Update the Status column when finishing work on a capability; don't let it drift behind the code.

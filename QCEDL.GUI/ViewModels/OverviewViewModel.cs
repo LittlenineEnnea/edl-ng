@@ -15,14 +15,20 @@ public sealed class OverviewViewModel : ViewModelBase
         // React to mode/status changes in the connection VM so the overview stays live.
         connection.WhenAnyValue(x => x.ModeText).Subscribe(_ => this.RaisePropertyChanged(nameof(ConnectionSummary)));
         connection.WhenAnyValue(x => x.StatusText).Subscribe(_ => this.RaisePropertyChanged(nameof(ConnectionSummary)));
+
+        Localizer.Instance.CultureChanged += (_, _) =>
+        {
+            this.RaisePropertyChanged(nameof(TagLine));
+            this.RaisePropertyChanged(nameof(ConnectionSummary));
+        };
     }
 
     public ConnectionViewModel Connection { get; }
 
     public string ConnectionSummary =>
         _service.IsConnected
-            ? $"Connected — {_service.CurrentMode}"
+            ? Localizer.Instance.Format("Overview_ConnectedFormat", _service.CurrentMode)
             : Connection.StatusText;
 
-    public string TagLine { get; } = "A calm, literary front-end for the Qualcomm EDL toolchain.";
+    public string TagLine => Localizer.Instance["Overview_TagLine"];
 }

@@ -2,13 +2,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:QCEDL.GUI.ViewModels"
              xmlns:svc="clr-namespace:QCEDL.GUI.Services"
+             xmlns:l="clr-namespace:QCEDL.GUI.Markup"
              x:Class="QCEDL.GUI.Views.LogsView"
              x:DataType="vm:LogsViewModel">
-    <StackPanel Spacing="16">
+    <StackPanel Spacing="16" MaxWidth="1040">
         <StackPanel Spacing="6">
-            <TextBlock Classes="label" Text="LOGS" />
-            <TextBlock Classes="h1" Text="Live output" />
-            <TextBlock Classes="body" Text="Everything the protocol layer emits, mirrored from the shared logger. The same stream also goes to stdout when the GUI is launched from a terminal." />
+            <TextBlock Classes="label" Text="{l:Localize Logs_Label}" />
+            <TextBlock Classes="h1" Text="{l:Localize Logs_Heading}" />
+            <TextBlock Classes="body" Text="{l:Localize Logs_Body}" />
         </StackPanel>
 
         <Border Classes="card dark" Padding="16">
