@@ -224,7 +224,11 @@
   <data name="Sectors_ReadButton" xml:space="preserve"><value>读取</value></data>
   <data name="Sectors_ReadLunButton" xml:space="preserve"><value>读取整个 LUN</value></data>
   <data name="Sectors_WriteButton" xml:space="preserve"><value>写入</value></data>
+  <data name="Sectors_WriteLunButton" xml:space="preserve"><value>写入整个 LUN</value></data>
   <data name="Sectors_EraseButton" xml:space="preserve"><value>擦除</value></data>
+  <data name="Sectors_ConfirmWriteLunTitle" xml:space="preserve"><value>写入整个 LUN</value></data>
+  <data name="Sectors_ConfirmWriteLunMessageFormat" xml:space="preserve"><value>即将把“{0}”({1} 字节)从 LBA 0 起写入 LUN {2}。LUN 容量为 {3} 字节,整个镜像将覆盖现有数据。</value></data>
+  <data name="Sectors_WriteLunTooLargeFormat" xml:space="preserve"><value>输入文件({0} 字节)超过 LUN 容量({1} 字节)。</value></data>
   <data name="Sectors_SaveTitle" xml:space="preserve"><value>将扇区数据保存到…</value></data>
   <data name="Sectors_OpenTitle" xml:space="preserve"><value>选择数据文件</value></data>
   <data name="Sectors_ConfirmWriteTitle" xml:space="preserve"><value>写入扇区</value></data>

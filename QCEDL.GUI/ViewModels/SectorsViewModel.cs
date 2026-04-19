@@ -160,6 +160,69 @@ public sealed partial class SectorsViewModel : ViewModelBase
     }
 
     [ReactiveCommand(CanExecute = nameof(_canRun))]
+    private async Task WriteLunAsync()
+    {
+        var picked = await PickOpenFile.Handle(new OpenFileRequest(
+            Localizer.Instance["Sectors_OpenTitle"],
+            [FilePickerTypes.AnyFile],
+            AllowMultiple: false));
+        var inputPath = picked.Count > 0 ? picked[0] : null;
+        if (string.IsNullOrEmpty(inputPath) || !File.Exists(inputPath))
+        {
+            return;
+        }
+
+        var info = new FileInfo(inputPath);
+        if (info.Length == 0)
+        {
+            Status = Localizer.Instance.Format("Sectors_ErrorFormat", "Input file is empty.");
+            return;
+        }
+
+        var lunForCheck = Lun;
+        var geometry = await _service.GetGeometryAsync(lunForCheck);
+        if (geometry.TotalSectors is null or 0)
+        {
+            Status = Localizer.Instance.Format("Sectors_ErrorFormat",
+                "Device did not report a total block count for this LUN.");
+            return;
+        }
+
+        var lunBytes = geometry.TotalSectors.Value * geometry.SectorSize;
+        if ((ulong)info.Length > lunBytes)
+        {
+            Status = Localizer.Instance.Format("Sectors_ErrorFormat",
+                Localizer.Instance.Format("Sectors_WriteLunTooLargeFormat", info.Length, lunBytes));
+            return;
+        }
+
+        var confirmed = await Confirm.Handle(new ConfirmRequest(
+            Localizer.Instance["Sectors_ConfirmWriteLunTitle"],
+            Localizer.Instance.Format("Sectors_ConfirmWriteLunMessageFormat", info.FullName, info.Length, lunForCheck, lunBytes),
+            Danger: true,
+            RequiredConfirmation: "WRITE"));
+        if (!confirmed)
+        {
+            return;
+        }
+
+        await RunAsync("Sectors_StatusWritingFormat", async () =>
+        {
+            var lun = lunForCheck;
+            ResetProgress(info.Length);
+
+            await _service.RunExclusiveAsync(async m =>
+            {
+                await using var stream = info.OpenRead();
+                await m.WriteSectorsFromStreamAsync(
+                    lun, 0, stream, stream.Length, padToSector: true, info.Name, Report);
+            });
+
+            return (ulong)info.Length;
+        });
+    }
+
+    [ReactiveCommand(CanExecute = nameof(_canRun))]
     private async Task WriteSectorsAsync()
     {
         var picked = await PickOpenFile.Handle(new OpenFileRequest(

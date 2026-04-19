@@ -224,7 +224,11 @@
   <data name="Sectors_ReadButton" xml:space="preserve"><value>讀取</value></data>
   <data name="Sectors_ReadLunButton" xml:space="preserve"><value>讀取整個 LUN</value></data>
   <data name="Sectors_WriteButton" xml:space="preserve"><value>寫入</value></data>
+  <data name="Sectors_WriteLunButton" xml:space="preserve"><value>寫入整個 LUN</value></data>
   <data name="Sectors_EraseButton" xml:space="preserve"><value>清除</value></data>
+  <data name="Sectors_ConfirmWriteLunTitle" xml:space="preserve"><value>寫入整個 LUN</value></data>
+  <data name="Sectors_ConfirmWriteLunMessageFormat" xml:space="preserve"><value>即將把「{0}」({1} 位元組)從 LBA 0 起寫入 LUN {2}。LUN 容量為 {3} 位元組,整個映像將覆寫既有資料。</value></data>
+  <data name="Sectors_WriteLunTooLargeFormat" xml:space="preserve"><value>輸入檔案({0} 位元組)超過 LUN 容量({1} 位元組)。</value></data>
   <data name="Sectors_SaveTitle" xml:space="preserve"><value>將磁區資料儲存到…</value></data>
   <data name="Sectors_OpenTitle" xml:space="preserve"><value>選擇資料檔</value></data>
   <data name="Sectors_ConfirmWriteTitle" xml:space="preserve"><value>寫入磁區</value></data>

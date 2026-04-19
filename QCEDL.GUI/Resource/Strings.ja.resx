@@ -224,7 +224,11 @@
   <data name="Sectors_ReadButton" xml:space="preserve"><value>読み取り</value></data>
   <data name="Sectors_ReadLunButton" xml:space="preserve"><value>LUN 全体を読み取り</value></data>
   <data name="Sectors_WriteButton" xml:space="preserve"><value>書き込み</value></data>
+  <data name="Sectors_WriteLunButton" xml:space="preserve"><value>LUN 全体に書き込み</value></data>
   <data name="Sectors_EraseButton" xml:space="preserve"><value>消去</value></data>
+  <data name="Sectors_ConfirmWriteLunTitle" xml:space="preserve"><value>LUN 全体に書き込み</value></data>
+  <data name="Sectors_ConfirmWriteLunMessageFormat" xml:space="preserve"><value>「{0}」({1} バイト)を LUN {2} の LBA 0 から書き込みます。LUN 容量は {3} バイトで、イメージ全体が既存データを上書きします。</value></data>
+  <data name="Sectors_WriteLunTooLargeFormat" xml:space="preserve"><value>入力ファイル({0} バイト)が LUN 容量({1} バイト)を超えています。</value></data>
   <data name="Sectors_SaveTitle" xml:space="preserve"><value>セクタデータの保存先…</value></data>
   <data name="Sectors_OpenTitle" xml:space="preserve"><value>データファイルを選択</value></data>
   <data name="Sectors_ConfirmWriteTitle" xml:space="preserve"><value>セクタへの書き込み</value></data>

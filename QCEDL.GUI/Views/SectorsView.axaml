@@ -29,6 +29,7 @@
                     <Button Classes="primary" Content="{l:Localize Sectors_ReadButton}" Command="{Binding ReadSectorsCommand}" IsEnabled="{Binding CanInteract}" />
                     <Button Content="{l:Localize Sectors_ReadLunButton}" Command="{Binding ReadLunCommand}" IsEnabled="{Binding CanInteract}" />
                     <Button Content="{l:Localize Sectors_WriteButton}" Command="{Binding WriteSectorsCommand}" IsEnabled="{Binding CanInteract}" />
+                    <Button Classes="danger" Content="{l:Localize Sectors_WriteLunButton}" Command="{Binding WriteLunCommand}" IsEnabled="{Binding CanInteract}" />
                     <Button Classes="danger" Content="{l:Localize Sectors_EraseButton}" Command="{Binding EraseSectorsCommand}" IsEnabled="{Binding CanInteract}" />
                 </StackPanel>
 

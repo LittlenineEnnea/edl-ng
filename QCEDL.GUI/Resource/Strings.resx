@@ -224,7 +224,11 @@
   <data name="Sectors_ReadButton" xml:space="preserve"><value>Read</value></data>
   <data name="Sectors_ReadLunButton" xml:space="preserve"><value>Read whole LUN</value></data>
   <data name="Sectors_WriteButton" xml:space="preserve"><value>Write</value></data>
+  <data name="Sectors_WriteLunButton" xml:space="preserve"><value>Write whole LUN</value></data>
   <data name="Sectors_EraseButton" xml:space="preserve"><value>Erase</value></data>
+  <data name="Sectors_ConfirmWriteLunTitle" xml:space="preserve"><value>Write whole LUN</value></data>
+  <data name="Sectors_ConfirmWriteLunMessageFormat" xml:space="preserve"><value>About to write “{0}” ({1} bytes) to LUN {2} starting at LBA 0. LUN capacity is {3} bytes. The entire image will overwrite existing data.</value></data>
+  <data name="Sectors_WriteLunTooLargeFormat" xml:space="preserve"><value>Input file ({0} bytes) is larger than LUN capacity ({1} bytes).</value></data>
   <data name="Sectors_SaveTitle" xml:space="preserve"><value>Save sector data to…</value></data>
   <data name="Sectors_OpenTitle" xml:space="preserve"><value>Pick data file</value></data>
   <data name="Sectors_ConfirmWriteTitle" xml:space="preserve"><value>Write sectors</value></data>
