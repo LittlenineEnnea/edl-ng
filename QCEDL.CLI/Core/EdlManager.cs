@@ -847,11 +847,28 @@ internal sealed class EdlManager(GlobalOptionsBinder globalOptions) : IDisposabl
                 {
                     Logging.Log("Sahara version < 3, attempting to get HWID and RKH.", LogLevel.Debug);
                     var hwid = _saharaClient.GetHwid();
+                    Logging.Log($"HWID: {Convert.ToHexString(hwid)}", LogLevel.Debug);
                     HardwareId.ParseHwid(hwid);
                 }
                 else
                 {
-                    Logging.Log("Sahara version >= 3, skipping HWID retrieval.", LogLevel.Debug);
+                    Logging.Log("Sahara version >= 3, retrieving HWID via CMD10 Get Fuse Information.",
+                        LogLevel.Debug);
+                    try
+                    {
+                        var chipInfo = _saharaClient.GetV3ChipInfo();
+                        var hwid = chipInfo.ToHwidBytes();
+                        Logging.Log(
+                            $"Sahara v3 chip info: BinaryVersion=0x{chipInfo.BinaryVersion:X8}, SOC_HW_VERSION=0x{chipInfo.SocHardwareVersion:X8}, JTAG_ID=0x{chipInfo.JtagId:X8}, OEM_ID=0x{chipInfo.RawOemId:X8}, PRODUCT_ID={(chipInfo.ProductId.HasValue ? $"0x{chipInfo.ProductId.Value:X8}" : "not returned")}.",
+                            LogLevel.Debug);
+                        Logging.Log($"HWID: {Convert.ToHexString(hwid)}", LogLevel.Debug);
+                        HardwareId.ParseHwid(hwid);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logging.Log($"Failed to retrieve Sahara v3 HWID via CMD10: {ex.Message}",
+                            LogLevel.Warning);
+                    }
                 }
 
                 var rkhs = _saharaClient.GetRkHs();

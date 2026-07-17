@@ -22,6 +22,7 @@ public sealed class QualcommSaharaTests
         Assert.Equal(QualcommSaharaHandshakeResult.Sahara, result);
         Assert.Equal(3u, sahara.DetectedDeviceSaharaVersion);
         Assert.Equal([QualcommSaharaCommand.HelloResponse], transport.SentCommands);
+        Assert.Equal(3u, BitConverter.ToUInt32(transport.SentPackets[0], 0x08));
     }
 
     [Fact]
@@ -126,6 +127,19 @@ public sealed class QualcommSaharaTests
 
         Assert.Equal(QualcommSaharaHandshakeResult.Failed, result);
         Assert.Empty(transport.SentPackets);
+    }
+
+    [Fact]
+    public void GetV3ChipInfoRejectsOlderProtocolWithoutIo()
+    {
+        var responses = new Queue<byte[]>();
+        using var transport = new SaharaRecordingTransport(responses);
+        var sahara = new QualcommSahara(transport);
+
+        _ = Assert.Throws<InvalidOperationException>(sahara.GetV3ChipInfo);
+
+        Assert.Empty(transport.SentPackets);
+        Assert.Empty(responses);
     }
 
     [Fact]

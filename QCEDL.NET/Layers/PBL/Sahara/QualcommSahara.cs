@@ -255,7 +255,9 @@ public class QualcommSahara(IQualcommTransport transport)
             }
 
             DetectedDeviceSaharaVersion = ByteOperations.ReadUInt32(packet, 0x08);
-            var helloResponse = BuildHelloResponsePacket(QualcommSaharaMode.Command);
+            var helloResponse = BuildHelloResponsePacket(
+                QualcommSaharaMode.Command,
+                DetectedDeviceSaharaVersion);
             var ready = transport.SendCommand(helloResponse, null);
             if (IsFirehoseXml(ready))
             {
@@ -529,7 +531,17 @@ public class QualcommSahara(IQualcommTransport transport)
 
     public byte[] GetHwid()
     {
-        return Execute.GetHwid(transport);
+        return DetectedDeviceSaharaVersion >= 3
+            ? Execute.GetV3ChipInfo(transport).ToHwidBytes()
+            : Execute.GetHwid(transport);
+    }
+
+    public QualcommSaharaV3ChipInfo GetV3ChipInfo()
+    {
+        return DetectedDeviceSaharaVersion >= 3
+            ? Execute.GetV3ChipInfo(transport)
+            : throw new InvalidOperationException(
+                $"Sahara CMD10 chip information requires protocol version 3 or newer; device reported version {DetectedDeviceSaharaVersion}.");
     }
 
     public byte[] GetSerialNumber()

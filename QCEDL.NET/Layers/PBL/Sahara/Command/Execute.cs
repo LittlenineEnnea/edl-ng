@@ -1,9 +1,13 @@
-﻿using Qualcomm.EmergencyDownload.Transport;
+﻿using QCEDL.NET.Logging;
+using Qualcomm.EmergencyDownload.Transport;
 
 namespace Qualcomm.EmergencyDownload.Layers.PBL.Sahara.Command;
 
 internal sealed class Execute
 {
+    private const int ExecuteResponsePacketLength = 0x10;
+    private const int MaximumCommandResponseLength = 0x10000;
+
     private static byte[] BuildExecutePacket(uint requestId)
     {
         var execute = new byte[0x04];
@@ -22,21 +26,58 @@ internal sealed class Execute
     {
         transport.SendData(BuildExecutePacket((uint)command));
 
-        var readDataRequest = transport.GetResponse(null);
-        var responseId = ByteOperations.ReadUInt32(readDataRequest, 0);
-
-        if (responseId != 0xE)
+        var executeResponse = transport.GetResponse(null, ExecuteResponsePacketLength);
+        LibraryLogger.Trace(
+            $"Sahara EXECUTE response for {command} ({executeResponse.Length} bytes): {Convert.ToHexString(executeResponse)}");
+        if (executeResponse.Length != ExecuteResponsePacketLength)
         {
-            throw new BadConnectionException();
+            throw new BadMessageException(
+                $"Sahara EXECUTE response for {command} is {executeResponse.Length} bytes; expected {ExecuteResponsePacketLength} bytes.");
         }
 
-        var dataLength = ByteOperations.ReadUInt32(readDataRequest, 0x0C);
+        var responseId = (QualcommSaharaCommand)ByteOperations.ReadUInt32(executeResponse, 0x00);
+        var declaredLength = ByteOperations.ReadUInt32(executeResponse, 0x04);
+        var responseCommand = (QualcommSaharaExecuteCommand)ByteOperations.ReadUInt32(executeResponse, 0x08);
+        var dataLength = ByteOperations.ReadUInt32(executeResponse, 0x0C);
+        if (responseId != QualcommSaharaCommand.ExecuteResponse ||
+            declaredLength != ExecuteResponsePacketLength || responseCommand != command)
+        {
+            throw new BadMessageException(
+                $"Invalid Sahara EXECUTE response for {command}: response {responseId}, declared length {declaredLength}, client command {responseCommand}.");
+        }
+
+        if (dataLength is 0 or > MaximumCommandResponseLength)
+        {
+            throw new BadMessageException(
+                $"Sahara EXECUTE response for {command} reported invalid payload length {dataLength}.");
+        }
 
         transport.SendData(BuildExecuteDataPacket((uint)command));
 
-        return transport.GetResponse(null, length: (int)dataLength);
+        var response = ReadExactly(transport, checked((int)dataLength));
+        LibraryLogger.Trace(
+            $"Sahara EXECUTE payload for {command} ({response.Length} bytes): {Convert.ToHexString(response)}");
+        return response;
     }
 
+    private static byte[] ReadExactly(IQualcommTransport transport, int length)
+    {
+        var response = new byte[length];
+        var offset = 0;
+        while (offset < response.Length)
+        {
+            var bytesRead = transport.Read(response, offset, response.Length - offset);
+            if (bytesRead == 0)
+            {
+                throw new BadMessageException(
+                    $"Device returned an empty Sahara EXECUTE payload after {offset} of {length} bytes.");
+            }
+
+            offset += bytesRead;
+        }
+
+        return response;
+    }
 
     public static byte[][] GetRkHs(IQualcommTransport transport)
     {
@@ -78,9 +119,18 @@ internal sealed class Execute
         return [.. response.Reverse()];
     }
 
+    public static QualcommSaharaV3ChipInfo GetV3ChipInfo(IQualcommTransport transport)
+    {
+        var response = GetCommandVariable(transport, QualcommSaharaExecuteCommand.ReadChipIdV3);
+        return QualcommSaharaV3ChipInfo.Parse(response);
+    }
+
     public static byte[] GetSerialNumber(IQualcommTransport transport)
     {
         var response = GetCommandVariable(transport, QualcommSaharaExecuteCommand.SerialNumRead);
-        return [.. response.Reverse()];
+        return response.Length >= sizeof(uint)
+            ? [response[3], response[2], response[1], response[0]]
+            : throw new BadMessageException(
+                $"Sahara serial-number response is {response.Length} bytes; expected at least {sizeof(uint)} bytes.");
     }
 }
