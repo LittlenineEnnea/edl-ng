@@ -1,4 +1,7 @@
 using System.Buffers.Binary;
+using System.Globalization;
+using System.Text;
+using QCEDL.NET.Logging;
 using Qualcomm.EmergencyDownload.Transport;
 
 namespace Qualcomm.EmergencyDownload.Layers.PBL.Sahara;
@@ -47,6 +50,11 @@ public sealed class QualcommSaharaV3ChipInfo
 
     public static QualcommSaharaV3ChipInfo Parse(ReadOnlySpan<byte> payload)
     {
+        if (TryParseTextualReport(payload, out var textualChipInfo))
+        {
+            return textualChipInfo;
+        }
+
         if (payload.Length < MinimumHwidPayloadLength)
         {
             throw new BadMessageException(
@@ -55,8 +63,10 @@ public sealed class QualcommSaharaV3ChipInfo
 
         if (payload.Length % sizeof(uint) != 0)
         {
-            throw new BadMessageException(
-                $"Sahara v3 CMD10 returned an invalid {payload.Length}-byte payload; fields must be 4-byte aligned.");
+            var alignedLength = payload.Length - (payload.Length % sizeof(uint));
+            LibraryLogger.Debug(
+                $"Sahara v3 CMD10 payload is {payload.Length} bytes; parsing the first {alignedLength}.");
+            payload = payload[..alignedLength];
         }
 
         var rawOemId = ReadUInt32(payload, 0x28);
@@ -99,6 +109,98 @@ public sealed class QualcommSaharaV3ChipInfo
             OemId = oemId,
             ModelId = modelId
         };
+    }
+
+    private static bool TryParseTextualReport(ReadOnlySpan<byte> payload, out QualcommSaharaV3ChipInfo chipInfo)
+    {
+        chipInfo = null!;
+        if (payload.IndexOf("SOC_HW_VERSION"u8) < 0)
+        {
+            return false;
+        }
+
+        var report = Encoding.ASCII.GetString(payload);
+        var fields = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase);
+        foreach (var rawLine in report.Split('\n'))
+        {
+            var line = rawLine.Trim('\r', ' ', '\0');
+            if (line.Length == 0)
+            {
+                continue;
+            }
+
+            LibraryLogger.Debug($"Sahara v3 CMD10: {line}");
+            var separator = line.IndexOf(':', StringComparison.Ordinal);
+            if (separator <= 0)
+            {
+                continue;
+            }
+
+            var key = line[..separator].Trim();
+            var value = line[(separator + 1)..].Trim();
+            if (value.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            {
+                if (uint.TryParse(value.AsSpan(2), NumberStyles.HexNumber, CultureInfo.InvariantCulture,
+                        out var parsed))
+                {
+                    fields[key] = parsed;
+                }
+            }
+            else if (uint.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var decimalValue))
+            {
+                fields[key] = decimalValue;
+            }
+        }
+
+        uint Field(string key)
+        {
+            return fields.TryGetValue(key, out var value) ? value : 0;
+        }
+
+        uint? OptionalField(string key)
+        {
+            return fields.TryGetValue(key, out var value) ? value : null;
+        }
+
+        var rawOemId = Field("OEM_ID");
+        var productId = OptionalField("OEM_PRODUCT_ID");
+        var oemId = (ushort)(rawOemId & ushort.MaxValue);
+        var modelId = (ushort)(rawOemId >> 16);
+        if (oemId == 0 && productId is > 0)
+        {
+            oemId = (ushort)(productId.Value & ushort.MaxValue);
+        }
+
+        chipInfo = new()
+        {
+            BinaryVersion = Field("CMD REV INFO"),
+            TmeFirmwareQtiVersion = Field("FW QC_ARB"),
+            TmeFirmwareOemVersion = Field("FW OEM_ARB"),
+            XblSecureCoreQtiVersion = Field("XBL QC_ARB"),
+            XblSecureCoreOemVersion = Field("XBL OEM_ARB"),
+            XblSecureCoreExtendedOemVersion = Field("BB ARB"),
+            DeviceProgrammerOemVersion = Field("QTI_MISC ARB"),
+            XblConfigOemVersion = Field("CFG OEM_ARB"),
+            SocHardwareVersion = Field("SOC_HW_VERSION"),
+            JtagId = Field("JTAG_ID"),
+            RawOemId = rawOemId,
+            ProductId = productId,
+            OemLifeCycleState = OptionalField("OEM_LCS"),
+            MrcActivationList = OptionalField("OEM MRC"),
+            MrcRevocationList = OptionalField("OEM MRC REVOK"),
+            NumberOfRootCertificates = OptionalField("CERTS"),
+            AppsSecureDebugStatus = OptionalField("DBG"),
+            PublicKeyHashInFuse = OptionalField("HASH FUSE"),
+            OemAuthenticationEnabled = OptionalField("AUTH"),
+            RomPublicKeyHashIndex = OptionalField("ROM IDX"),
+            OemId = oemId,
+            ModelId = modelId
+        };
+
+        var socHardwareVersion = chipInfo.SocHardwareVersion;
+        LibraryLogger.Debug(
+            $"Sahara v3 CMD10: SOC_HW_VERSION=0x{socHardwareVersion:X8} (family 0x{(socHardwareVersion >> 28) & 0xF:X}, device 0x{(socHardwareVersion >> 16) & 0xFFF:X3}, silicon revision {((socHardwareVersion >> 8) & 0xFF) + 1}.{socHardwareVersion & 0xFF}), JTAG_ID=0x{chipInfo.JtagId:X}, authentication {(chipInfo.OemAuthenticationEnabled is 0 ? "DISABLED" : "enabled")}, debug {(chipInfo.AppsSecureDebugStatus is 1 ? "enabled" : "disabled")}.");
+        return true;
     }
 
     private static uint ReadUInt32(ReadOnlySpan<byte> payload, int offset)
