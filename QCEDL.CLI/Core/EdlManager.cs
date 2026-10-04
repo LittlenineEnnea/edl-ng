@@ -929,7 +929,7 @@ internal sealed class EdlManager(GlobalOptionsBinder globalOptions) : IDisposabl
                 {
                     Logging.Log("Sahara version < 3, attempting to get HWID and RKH.", LogLevel.Debug);
                     var hwid = _saharaClient.GetHwid();
-                    Logging.Log($"HWID: {Convert.ToHexString(hwid)}", LogLevel.Debug);
+                    Logging.Log($"HWID: {Convert.ToHexString(hwid)}");
                     HardwareId.ParseHwid(hwid);
                 }
                 else
@@ -943,7 +943,7 @@ internal sealed class EdlManager(GlobalOptionsBinder globalOptions) : IDisposabl
                         Logging.Log(
                             $"Sahara v3 chip info: BinaryVersion=0x{chipInfo.BinaryVersion:X8}, SOC_HW_VERSION=0x{chipInfo.SocHardwareVersion:X8}, JTAG_ID=0x{chipInfo.JtagId:X8}, OEM_ID=0x{chipInfo.RawOemId:X8}, PRODUCT_ID={(chipInfo.ProductId.HasValue ? $"0x{chipInfo.ProductId.Value:X8}" : "not returned")}.",
                             LogLevel.Debug);
-                        Logging.Log($"HWID: {Convert.ToHexString(hwid)}", LogLevel.Debug);
+                        Logging.Log($"HWID: {Convert.ToHexString(hwid)}");
                         HardwareId.ParseHwid(hwid);
                     }
                     catch (QualcommSaharaUnexpectedPacketException)
@@ -960,7 +960,7 @@ internal sealed class EdlManager(GlobalOptionsBinder globalOptions) : IDisposabl
                 var rkhs = _saharaClient.GetRkHs();
                 for (var i = 0; i < rkhs.Length; i++)
                 {
-                    Logging.Log($"RKH[{i}]: {Convert.ToHexString(rkhs[i])}", LogLevel.Debug);
+                    Logging.Log($"RKH[{i}]: {Convert.ToHexString(rkhs[i])}");
                 }
             }
             catch (QualcommSaharaUnexpectedPacketException ex)

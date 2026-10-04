@@ -84,7 +84,7 @@ public sealed class QualcommSaharaV3ChipInfo
             oemId = (ushort)(productId.Value & ushort.MaxValue);
         }
 
-        return new()
+        var chipInfo = new QualcommSaharaV3ChipInfo
         {
             BinaryVersion = ReadUInt32(payload, 0x00),
             TmeFirmwareQtiVersion = ReadUInt32(payload, 0x04),
@@ -109,6 +109,34 @@ public sealed class QualcommSaharaV3ChipInfo
             OemId = oemId,
             ModelId = modelId
         };
+
+        chipInfo.LogReport();
+        return chipInfo;
+    }
+
+    private void LogReport()
+    {
+        LibraryLogger.Info($"CMD REV INFO: 0x{BinaryVersion:X}");
+        LibraryLogger.Info($"SOC_HW_VERSION: 0x{SocHardwareVersion:X}");
+        LibraryLogger.Info($"JTAG_ID: 0x{JtagId:X}");
+        LibraryLogger.Info($"OEM_ID: 0x{RawOemId:X}");
+        LogOptional("OEM_PRODUCT_ID", ProductId);
+        LogOptional("OEM_LCS", OemLifeCycleState);
+        LogOptional("OEM MRC", MrcActivationList);
+        LogOptional("OEM MRC REVOK", MrcRevocationList);
+        LogOptional("CERTS", NumberOfRootCertificates);
+        LogOptional("DBG", AppsSecureDebugStatus);
+        LogOptional("AUTH", OemAuthenticationEnabled);
+        LogOptional("HASH FUSE", PublicKeyHashInFuse);
+        LogOptional("ROM IDX", RomPublicKeyHashIndex);
+    }
+
+    private static void LogOptional(string name, uint? value)
+    {
+        if (value.HasValue)
+        {
+            LibraryLogger.Info($"{name}: 0x{value.Value:X}");
+        }
     }
 
     private static bool TryParseTextualReport(ReadOnlySpan<byte> payload, out QualcommSaharaV3ChipInfo chipInfo)
@@ -129,7 +157,7 @@ public sealed class QualcommSaharaV3ChipInfo
                 continue;
             }
 
-            LibraryLogger.Debug($"Sahara v3 CMD10: {line}");
+            LibraryLogger.Info(line);
             var separator = line.IndexOf(':', StringComparison.Ordinal);
             if (separator <= 0)
             {
@@ -197,9 +225,6 @@ public sealed class QualcommSaharaV3ChipInfo
             ModelId = modelId
         };
 
-        var socHardwareVersion = chipInfo.SocHardwareVersion;
-        LibraryLogger.Debug(
-            $"Sahara v3 CMD10: SOC_HW_VERSION=0x{socHardwareVersion:X8} (family 0x{(socHardwareVersion >> 28) & 0xF:X}, device 0x{(socHardwareVersion >> 16) & 0xFFF:X3}, silicon revision {((socHardwareVersion >> 8) & 0xFF) + 1}.{socHardwareVersion & 0xFF}), JTAG_ID=0x{chipInfo.JtagId:X}, authentication {(chipInfo.OemAuthenticationEnabled is 0 ? "DISABLED" : "enabled")}, debug {(chipInfo.AppsSecureDebugStatus is 1 ? "enabled" : "disabled")}.");
         return true;
     }
 
